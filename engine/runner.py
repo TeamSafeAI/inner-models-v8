@@ -207,6 +207,22 @@ class Brain:
             dtype=np.float64)
         self.has_reward = len(reward_idx) > 0
 
+        # Synaptic homeostasis: group reward synapses by target neuron
+        # After reward delivery, normalize inputs per target to prevent runaway weights
+        # (Ref: Friedrich et al 2014, "rewarded STDP alone insufficient without homeostasis")
+        if self.has_reward:
+            self.reward_target_groups = {}  # target_id -> list of reward array indices
+            for ri, si in enumerate(reward_idx):
+                tid = synapses[si]['target']
+                if tid not in self.reward_target_groups:
+                    self.reward_target_groups[tid] = []
+                self.reward_target_groups[tid].append(ri)
+            # Cache initial weight total per target for normalization target
+            self.reward_target_w0 = {}
+            for tid, indices in self.reward_target_groups.items():
+                total = sum(synapses[reward_idx[ri]]['weight'] for ri in indices)
+                self.reward_target_w0[tid] = max(total, 1e-6)
+
         # Facilitating: gain + decay + increment
         self.facil_idx = facil_idx
         self.facil_gain = np.ones(len(facil_idx), dtype=np.float64)
@@ -509,6 +525,30 @@ class Brain:
             syn['weight'] = max(w_min, min(w_max, w + dw))
             # Partially consume eligibility
             self.reward_elig[ri] *= 0.5
+
+        # Synaptic homeostasis: soft normalization per target neuron
+        # Pulls total input toward initial value, prevents runaway but allows learning
+        # Rate 0.1 = 10% correction per reward delivery (~400 deliveries/session)
+        homeo_rate = 0.1
+        for tid, indices in self.reward_target_groups.items():
+            if len(indices) < 2:
+                continue
+            current_total = 0.0
+            for ri in indices:
+                current_total += synapses[self.reward_idx[ri]]['weight']
+            if current_total < 1e-6:
+                continue
+            target_total = self.reward_target_w0[tid]
+            # Soft pull: scale = 1 + rate * (target/current - 1)
+            ratio = target_total / current_total
+            scale = 1.0 + homeo_rate * (ratio - 1.0)
+            if abs(scale - 1.0) < 1e-8:
+                continue
+            for ri in indices:
+                si = self.reward_idx[ri]
+                w = synapses[si]['weight']
+                synapses[si]['weight'] = max(synapses[si]['w_min'],
+                                             min(synapses[si]['w_max'], w * scale))
 
     def sync_state(self):
         """Write NumPy state back to dicts (call before save)."""
