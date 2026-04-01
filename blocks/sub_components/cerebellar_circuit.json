@@ -1,0 +1,49 @@
+{
+  "name": "cerebellar_circuit",
+  "description": "Minimal cerebellum — error-correction motor learning. Real cerebellum: granule cells (input) → Purkinje cells (processing, inhibit output) → deep cerebellar nuclei (output). Climbing fibers carry error signal that pauses Purkinje firing. Our version: 2 RS mossy fibers receive input. 1 IB Purkinje-analog tonically fires and inhibits 2 RS deep nucleus outputs. Error input drives CH climbing fiber → FS basket cell burst → kills Purkinje. With Purkinje killed, deep nucleus is disinhibited and fires. STDP on mossy→deep_nucleus: mossy (pre) fired, then deep_nucleus (post) fires because disinhibited = LTP. Over many errors, mossy→deep_nucleus grows strong enough that deep nucleus fires even without error. The error has TAUGHT the direct pathway. LTS Golgi cell provides sustained input regulation. Implements: motor error correction, adaptive timing, supervised learning via error signals.",
+  "nodes": [
+    {"id": 0, "type": "RS", "x": 0.0, "z": 0.0},
+    {"id": 1, "type": "RS", "x": 0.0, "z": 2.0},
+
+    {"id": 2, "type": "IB", "x": 2.0, "z": 1.0},
+
+    {"id": 3, "type": "CH", "x": 0.0, "z": 4.0, "params": {"a": 0.02, "c": -55.0, "d": 4.0}},
+    {"id": 4, "type": "FS", "x": 2.0, "z": 3.0},
+
+    {"id": 5, "type": "LTS", "x": 2.0, "z": -1.0},
+
+    {"id": 6, "type": "RS", "x": 4.0, "z": 0.0},
+    {"id": 7, "type": "RS", "x": 4.0, "z": 2.0}
+  ],
+  "paths": [
+    {"source": 0, "target": 2, "synapse_type": "fixed", "weight": 8.0, "delay": 1},
+    {"source": 1, "target": 2, "synapse_type": "fixed", "weight": 8.0, "delay": 1},
+
+    {"source": 2, "target": 6, "synapse_type": "fixed", "weight": -15.0, "delay": 1},
+    {"source": 2, "target": 7, "synapse_type": "fixed", "weight": -15.0, "delay": 1},
+
+    {"source": 2, "target": 2, "synapse_type": "fixed", "weight": 6.0, "delay": 3},
+
+    {"source": 0, "target": 6, "synapse_type": "plastic", "weight": 1.0, "delay": 1,
+     "params": {"learning_rate": 0.25, "w_min": 0.0, "w_max": 10.0, "tau_plus": 20.0}},
+    {"source": 1, "target": 7, "synapse_type": "plastic", "weight": 1.0, "delay": 1,
+     "params": {"learning_rate": 0.25, "w_min": 0.0, "w_max": 10.0, "tau_plus": 20.0}},
+
+    {"source": 3, "target": 4, "synapse_type": "fixed", "weight": 15.0, "delay": 1},
+    {"source": 4, "target": 4, "synapse_type": "fixed", "weight": 15.0, "delay": 2},
+    {"source": 4, "target": 2, "synapse_type": "fixed", "weight": -30.0, "delay": 1},
+
+    {"source": 2, "target": 5, "synapse_type": "fixed", "weight": 5.0, "delay": 1},
+    {"source": 5, "target": 0, "synapse_type": "fixed", "weight": -6.0, "delay": 1},
+    {"source": 5, "target": 1, "synapse_type": "fixed", "weight": -6.0, "delay": 1},
+
+    {"source": 0, "target": 7, "synapse_type": "fixed", "weight": 3.0, "delay": 1},
+    {"source": 1, "target": 6, "synapse_type": "fixed", "weight": 3.0, "delay": 1}
+  ],
+  "terminals": [
+    {"id": 0, "bind_type": "input",  "neuron_ids": [0, 1], "label": "mossy_in"},
+    {"id": 1, "bind_type": "input",  "neuron_ids": [3],    "label": "error_in"},
+    {"id": 2, "bind_type": "output", "neuron_ids": [6, 7], "label": "nucleus_out"},
+    {"id": 3, "bind_type": "output", "neuron_ids": [2],    "label": "purkinje_out"}
+  ]
+}

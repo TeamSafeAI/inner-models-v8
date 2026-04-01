@@ -1,0 +1,47 @@
+{
+  "name": "chemosensory",
+  "description": "Layered sensory processing pipeline. Sensory layer detects chemicals, processing layer extracts features via plastic synapses (learnable), integration layer competes via mutual inhibition, outputs drive approach or avoidance. Facilitating output synapses reward sustained signals. Pattern: C. elegans AWC/AWA/ASE/ASH sensory → AIY/AIZ/AIA processing → AIB output.",
+  "nodes": [
+    {"id": 0,  "type": "RS", "x": 0.0, "z": 0.0, "sensor": {"modality": "chemical", "location": "head"}},
+    {"id": 1,  "type": "RS", "x": 2.0, "z": 0.0, "sensor": {"modality": "chemical", "location": "head"}},
+    {"id": 2,  "type": "RS", "x": 4.0, "z": 0.0, "sensor": {"modality": "chemical", "location": "head"}},
+    {"id": 3,  "type": "RS", "x": 6.0, "z": 0.0, "sensor": {"modality": "chemical", "location": "head"}},
+    {"id": 4,  "type": "RS", "x": 0.5, "z": 2.0},
+    {"id": 5,  "type": "RS", "x": 2.5, "z": 2.0},
+    {"id": 6,  "type": "RS", "x": 3.5, "z": 2.0},
+    {"id": 7,  "type": "RS", "x": 5.5, "z": 2.0},
+    {"id": 8,  "type": "RS", "x": 2.0, "z": 4.0},
+    {"id": 9,  "type": "RS", "x": 4.0, "z": 4.0},
+    {"id": 10, "type": "RS", "x": 2.0, "z": 6.0},
+    {"id": 11, "type": "RS", "x": 4.0, "z": 6.0}
+  ],
+  "paths": [
+    {"source": 0, "target": 4, "synapse_type": "plastic", "weight": 6.0, "delay": 1},
+    {"source": 0, "target": 5, "synapse_type": "plastic", "weight": 4.0, "delay": 1},
+    {"source": 1, "target": 4, "synapse_type": "plastic", "weight": 4.0, "delay": 1},
+    {"source": 1, "target": 5, "synapse_type": "plastic", "weight": 6.0, "delay": 1},
+    {"source": 1, "target": 6, "synapse_type": "plastic", "weight": 4.0, "delay": 1},
+    {"source": 2, "target": 5, "synapse_type": "plastic", "weight": 4.0, "delay": 1},
+    {"source": 2, "target": 6, "synapse_type": "plastic", "weight": 6.0, "delay": 1},
+    {"source": 2, "target": 7, "synapse_type": "plastic", "weight": 4.0, "delay": 1},
+    {"source": 3, "target": 6, "synapse_type": "plastic", "weight": 4.0, "delay": 1},
+    {"source": 3, "target": 7, "synapse_type": "plastic", "weight": 6.0, "delay": 1},
+    {"source": 3, "target": 4, "synapse_type": "plastic", "weight": 4.0, "delay": 1},
+
+    {"source": 4, "target": 8, "synapse_type": "plastic", "weight": 6.0, "delay": 1},
+    {"source": 5, "target": 8, "synapse_type": "plastic", "weight": 6.0, "delay": 1},
+    {"source": 6, "target": 9, "synapse_type": "plastic", "weight": 6.0, "delay": 1},
+    {"source": 7, "target": 9, "synapse_type": "plastic", "weight": 6.0, "delay": 1},
+
+    {"source": 8, "target": 9, "synapse_type": "fixed", "weight": -3.0, "delay": 1},
+    {"source": 9, "target": 8, "synapse_type": "fixed", "weight": -3.0, "delay": 1},
+
+    {"source": 8, "target": 10, "synapse_type": "facilitating", "weight": 8.0, "delay": 1},
+    {"source": 9, "target": 11, "synapse_type": "facilitating", "weight": 8.0, "delay": 1}
+  ],
+  "terminals": [
+    {"id": 0, "bind_type": "input",  "neuron_ids": [0, 1, 2, 3], "label": "sensory_in"},
+    {"id": 1, "bind_type": "output", "neuron_ids": [8, 10],      "label": "approach_out"},
+    {"id": 2, "bind_type": "output", "neuron_ids": [9, 11],      "label": "avoid_out"}
+  ]
+}

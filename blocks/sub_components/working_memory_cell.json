@@ -1,0 +1,43 @@
+{
+  "name": "working_memory_cell",
+  "description": "Associative working memory unit. A bistable CH ring (a=0, c=-65, d=0) stores 1 bit of active memory. RS trigger sets the memory, FS kill clears it. Two RS association neurons connect to the ring via fast-learning plastic synapses (lr=0.5). While memory is ON and association inputs are active, STDP strengthens those connections. After clearing, the association input alone can RECALL the memory — re-triggering the ring without the original trigger. This is the simplest form of learned association: 'what was happening when this memory was set' can later reactivate it. Use case: sensory-motor binding, conditioned responses, context-dependent recall.",
+  "nodes": [
+    {"id": 0, "type": "CH", "x": 0.0, "z": 2.0, "params": {"a": 0.0, "c": -65.0, "d": 0.0}},
+    {"id": 1, "type": "CH", "x": 2.0, "z": 2.0, "params": {"a": 0.0, "c": -65.0, "d": 0.0}},
+    {"id": 2, "type": "CH", "x": 1.0, "z": 0.0, "params": {"a": 0.0, "c": -65.0, "d": 0.0}},
+
+    {"id": 3, "type": "RS", "x": 1.0, "z": -3.0},
+    {"id": 4, "type": "FS", "x": 1.0, "z": 5.0},
+
+    {"id": 5, "type": "RS", "x": -2.0, "z": 0.0},
+    {"id": 6, "type": "RS", "x": 4.0,  "z": 0.0}
+  ],
+  "paths": [
+    {"source": 0, "target": 1, "synapse_type": "fixed", "weight": 12.0, "delay": 1},
+    {"source": 1, "target": 2, "synapse_type": "fixed", "weight": 12.0, "delay": 1},
+    {"source": 2, "target": 0, "synapse_type": "fixed", "weight": 12.0, "delay": 1},
+    {"source": 0, "target": 0, "synapse_type": "fixed", "weight": 8.0, "delay": 2},
+    {"source": 1, "target": 1, "synapse_type": "fixed", "weight": 8.0, "delay": 2},
+    {"source": 2, "target": 2, "synapse_type": "fixed", "weight": 8.0, "delay": 2},
+
+    {"source": 3, "target": 0, "synapse_type": "fixed", "weight": 10.0, "delay": 1},
+    {"source": 3, "target": 1, "synapse_type": "fixed", "weight": 10.0, "delay": 1},
+    {"source": 3, "target": 2, "synapse_type": "fixed", "weight": 10.0, "delay": 1},
+
+    {"source": 4, "target": 0, "synapse_type": "fixed", "weight": -30.0, "delay": 1},
+    {"source": 4, "target": 1, "synapse_type": "fixed", "weight": -30.0, "delay": 1},
+    {"source": 4, "target": 2, "synapse_type": "fixed", "weight": -30.0, "delay": 1},
+    {"source": 4, "target": 4, "synapse_type": "fixed", "weight": 15.0, "delay": 2},
+
+    {"source": 5, "target": 0, "synapse_type": "plastic", "weight": 2.0, "delay": 1, "params": {"learning_rate": 0.5}},
+    {"source": 5, "target": 1, "synapse_type": "plastic", "weight": 2.0, "delay": 1, "params": {"learning_rate": 0.5}},
+    {"source": 6, "target": 1, "synapse_type": "plastic", "weight": 2.0, "delay": 1, "params": {"learning_rate": 0.5}},
+    {"source": 6, "target": 2, "synapse_type": "plastic", "weight": 2.0, "delay": 1, "params": {"learning_rate": 0.5}}
+  ],
+  "terminals": [
+    {"id": 0, "bind_type": "input",  "neuron_ids": [3],      "label": "trigger_in"},
+    {"id": 1, "bind_type": "input",  "neuron_ids": [4],      "label": "kill_in"},
+    {"id": 2, "bind_type": "input",  "neuron_ids": [5, 6],   "label": "association_in"},
+    {"id": 3, "bind_type": "output", "neuron_ids": [0, 1, 2], "label": "memory_out"}
+  ]
+}

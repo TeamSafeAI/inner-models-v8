@@ -1,0 +1,41 @@
+{
+  "name": "cpg_oscillator",
+  "description": "4 CH pacemakers + 4 FS mutual inhibitors. Produces alternating burst rhythm for locomotion. CH provides timing, FS breaks symmetry into two anti-phase groups. Worm equivalent: ventral cord oscillation.",
+  "nodes": [
+    {"id": 0, "type": "CH", "x": 0.0, "z": 0.0},
+    {"id": 1, "type": "CH", "x": 2.0, "z": 0.0},
+    {"id": 2, "type": "CH", "x": 4.0, "z": 0.0},
+    {"id": 3, "type": "CH", "x": 6.0, "z": 0.0},
+    {"id": 4, "type": "FS", "x": 1.0, "z": 2.0},
+    {"id": 5, "type": "FS", "x": 3.0, "z": 2.0},
+    {"id": 6, "type": "FS", "x": 5.0, "z": 2.0},
+    {"id": 7, "type": "FS", "x": 3.0, "z": -1.0}
+  ],
+  "paths": [
+    {"source": 0, "target": 1, "synapse_type": "gap_junction", "weight": 0.1, "delay": 0, "params": {"conductance": 0.1}},
+    {"source": 2, "target": 3, "synapse_type": "gap_junction", "weight": 0.1, "delay": 0, "params": {"conductance": 0.1}},
+
+    {"source": 0, "target": 4, "synapse_type": "fixed", "weight": 3.0, "delay": 1},
+    {"source": 1, "target": 4, "synapse_type": "fixed", "weight": 3.0, "delay": 1},
+    {"source": 2, "target": 5, "synapse_type": "fixed", "weight": 3.0, "delay": 1},
+    {"source": 3, "target": 5, "synapse_type": "fixed", "weight": 3.0, "delay": 1},
+
+    {"source": 4, "target": 2, "synapse_type": "fixed", "weight": -5.0, "delay": 1},
+    {"source": 4, "target": 3, "synapse_type": "fixed", "weight": -5.0, "delay": 1},
+    {"source": 5, "target": 0, "synapse_type": "fixed", "weight": -5.0, "delay": 1},
+    {"source": 5, "target": 1, "synapse_type": "fixed", "weight": -5.0, "delay": 1},
+
+    {"source": 6, "target": 4, "synapse_type": "fixed", "weight": -3.0, "delay": 2},
+    {"source": 6, "target": 5, "synapse_type": "fixed", "weight": -3.0, "delay": 2},
+    {"source": 0, "target": 6, "synapse_type": "fixed", "weight": 2.0, "delay": 1},
+    {"source": 2, "target": 6, "synapse_type": "fixed", "weight": 2.0, "delay": 1},
+
+    {"source": 7, "target": 0, "synapse_type": "plastic", "weight": 1.5, "delay": 1},
+    {"source": 7, "target": 2, "synapse_type": "plastic", "weight": 1.5, "delay": 1}
+  ],
+  "terminals": [
+    {"id": 0, "bind_type": "input",  "neuron_ids": [7]},
+    {"id": 1, "bind_type": "output", "neuron_ids": [0, 1]},
+    {"id": 2, "bind_type": "output", "neuron_ids": [2, 3]}
+  ]
+}

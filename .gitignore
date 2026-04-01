@@ -1,0 +1,24 @@
+# Generated brain databases (regenerate from recipes)
+brains/zoo/*.db
+brains/evolved/*.db
+brains/*.db
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+dist/
+build/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Recordings
+recordings/
+*.npz

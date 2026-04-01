@@ -1,0 +1,59 @@
+{
+  "name": "basal_ganglia",
+  "description": "Minimal basal ganglia — action selection via disinhibition. Real basal ganglia: direct pathway (D1 striatum → GPi inhibit → thalamus disinhibit = GO) vs indirect pathway (D2 striatum → GPe inhibit → STN disinhibit → GPi excite = NO-GO). Dopamine tips the balance: D1 facilitated, D2 suppressed. Our version: 2 RS cortical inputs feed both D1 (RS, GO) and D2 (RS, NO-GO) striatal neurons via PLASTIC synapses. FS GPi tonically fires (self-excitation) and inhibits RS thalamus output. D1 inhibits GPi (disinhibits output = GO). D2 inhibits FS GPe, which normally inhibits RS STN. STN disinhibited excites GPi (strengthens NO-GO). CH dopamine facilitates D1 and suppresses D2. LTS provides tonic drive to maintain GPi baseline. Result: dopamine shifts selection toward GO. STDP on cortical→striatum learns which inputs to select. Implements: action selection, reinforcement learning, habit formation, response inhibition.",
+  "nodes": [
+    {"id": 0, "type": "RS", "x": 0.0, "z": 0.0},
+    {"id": 1, "type": "RS", "x": 0.0, "z": 2.0},
+
+    {"id": 2, "type": "RS", "x": 2.0, "z": -1.0},
+    {"id": 3, "type": "RS", "x": 2.0, "z": 3.0},
+
+    {"id": 4, "type": "FS", "x": 4.0, "z": 1.0},
+    {"id": 5, "type": "FS", "x": 3.0, "z": 4.0},
+    {"id": 6, "type": "RS", "x": 3.0, "z": -2.0},
+
+    {"id": 7, "type": "RS", "x": 6.0, "z": 1.0},
+
+    {"id": 8, "type": "CH", "x": 1.0, "z": 5.0, "params": {"a": 0.02, "c": -55.0, "d": 4.0}},
+    {"id": 9, "type": "LTS", "x": 5.0, "z": -1.0}
+  ],
+  "paths": [
+    {"source": 0, "target": 2, "synapse_type": "plastic", "weight": 5.0, "delay": 1,
+     "params": {"learning_rate": 0.2, "w_min": 0.0, "w_max": 10.0, "tau_plus": 20.0}},
+    {"source": 1, "target": 2, "synapse_type": "plastic", "weight": 5.0, "delay": 1,
+     "params": {"learning_rate": 0.2, "w_min": 0.0, "w_max": 10.0, "tau_plus": 20.0}},
+    {"source": 0, "target": 3, "synapse_type": "plastic", "weight": 5.0, "delay": 1,
+     "params": {"learning_rate": 0.2, "w_min": 0.0, "w_max": 10.0, "tau_plus": 20.0}},
+    {"source": 1, "target": 3, "synapse_type": "plastic", "weight": 5.0, "delay": 1,
+     "params": {"learning_rate": 0.2, "w_min": 0.0, "w_max": 10.0, "tau_plus": 20.0}},
+
+    {"source": 2, "target": 4, "synapse_type": "fixed", "weight": -20.0, "delay": 1},
+
+    {"source": 3, "target": 5, "synapse_type": "fixed", "weight": -15.0, "delay": 1},
+    {"source": 5, "target": 6, "synapse_type": "fixed", "weight": -12.0, "delay": 1},
+    {"source": 6, "target": 4, "synapse_type": "fixed", "weight": 10.0, "delay": 1},
+
+    {"source": 4, "target": 4, "synapse_type": "fixed", "weight": 8.0, "delay": 3},
+    {"source": 4, "target": 7, "synapse_type": "fixed", "weight": -18.0, "delay": 1},
+
+    {"source": 5, "target": 5, "synapse_type": "fixed", "weight": 8.0, "delay": 3},
+    {"source": 5, "target": 6, "synapse_type": "fixed", "weight": -12.0, "delay": 1},
+
+    {"source": 9, "target": 4, "synapse_type": "fixed", "weight": 8.0, "delay": 1},
+    {"source": 9, "target": 5, "synapse_type": "fixed", "weight": 6.0, "delay": 1},
+
+    {"source": 0, "target": 7, "synapse_type": "fixed", "weight": 3.0, "delay": 1},
+    {"source": 1, "target": 7, "synapse_type": "fixed", "weight": 3.0, "delay": 1},
+
+    {"source": 8, "target": 2, "synapse_type": "fixed", "weight": 6.0, "delay": 1},
+    {"source": 8, "target": 3, "synapse_type": "fixed", "weight": -8.0, "delay": 1}
+  ],
+  "terminals": [
+    {"id": 0, "bind_type": "input",  "neuron_ids": [0, 1], "label": "cortical_in"},
+    {"id": 1, "bind_type": "input",  "neuron_ids": [8],    "label": "dopamine_in"},
+    {"id": 2, "bind_type": "input",  "neuron_ids": [9],    "label": "tonic_in"},
+    {"id": 3, "bind_type": "output", "neuron_ids": [7],    "label": "action_out"},
+    {"id": 4, "bind_type": "output", "neuron_ids": [2],    "label": "go_out"},
+    {"id": 5, "bind_type": "output", "neuron_ids": [3],    "label": "nogo_out"}
+  ]
+}

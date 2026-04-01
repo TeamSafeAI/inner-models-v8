@@ -1,0 +1,34 @@
+{
+  "name": "bistable_motif",
+  "description": "Bistable memory unit — 1-bit digital latch. Three CH neurons (a=0, c=-65, d=0) in a recurrent ring with self-excitation. The 'digital cheat': a=0 freezes recovery variable u at -13 forever; c=-65 resets voltage below the unstable fixed point (-58.2) so the OFF state is truly stable; d=0 means no recovery kick. ON state sustained by ring (w=12, d=1) + self-loops (w=8, d=2). OFF state stable because tonic 2.5 alone gives dv/dt=-0.5 at v=-65. RS gate triggers all three ON. FS kill breaks the ring — once any cycle is suppressed, all neurons fall to v=-66.8 and stay silent.",
+  "nodes": [
+    {"id": 0, "type": "CH", "x": 0.0, "z": 0.0, "params": {"a": 0.0, "c": -65.0, "d": 0.0}},
+    {"id": 1, "type": "CH", "x": 2.0, "z": 1.0, "params": {"a": 0.0, "c": -65.0, "d": 0.0}},
+    {"id": 2, "type": "CH", "x": 1.0, "z": -1.0, "params": {"a": 0.0, "c": -65.0, "d": 0.0}},
+    {"id": 3, "type": "RS", "x": 1.0, "z": -3.0},
+    {"id": 4, "type": "FS", "x": 1.0, "z": 3.0}
+  ],
+  "paths": [
+    {"source": 3, "target": 0, "synapse_type": "fixed", "weight": 10.0, "delay": 1},
+    {"source": 3, "target": 1, "synapse_type": "fixed", "weight": 10.0, "delay": 1},
+    {"source": 3, "target": 2, "synapse_type": "fixed", "weight": 10.0, "delay": 1},
+
+    {"source": 0, "target": 1, "synapse_type": "fixed", "weight": 12.0, "delay": 1},
+    {"source": 1, "target": 2, "synapse_type": "fixed", "weight": 12.0, "delay": 1},
+    {"source": 2, "target": 0, "synapse_type": "fixed", "weight": 12.0, "delay": 1},
+
+    {"source": 0, "target": 0, "synapse_type": "fixed", "weight": 8.0, "delay": 2},
+    {"source": 1, "target": 1, "synapse_type": "fixed", "weight": 8.0, "delay": 2},
+    {"source": 2, "target": 2, "synapse_type": "fixed", "weight": 8.0, "delay": 2},
+
+    {"source": 4, "target": 0, "synapse_type": "fixed", "weight": -30.0, "delay": 1},
+    {"source": 4, "target": 1, "synapse_type": "fixed", "weight": -30.0, "delay": 1},
+    {"source": 4, "target": 2, "synapse_type": "fixed", "weight": -30.0, "delay": 1},
+    {"source": 4, "target": 4, "synapse_type": "fixed", "weight": 15.0, "delay": 2}
+  ],
+  "terminals": [
+    {"id": 0, "bind_type": "input",  "neuron_ids": [3], "label": "trigger_in"},
+    {"id": 1, "bind_type": "input",  "neuron_ids": [4], "label": "kill_in"},
+    {"id": 2, "bind_type": "output", "neuron_ids": [0, 1, 2], "label": "sustained_out"}
+  ]
+}

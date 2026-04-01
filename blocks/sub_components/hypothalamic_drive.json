@@ -1,0 +1,43 @@
+{
+  "name": "hypothalamic_drive",
+  "description": "Minimal hypothalamus — homeostatic drive generator. Creates intrinsic motivation signals that persist until satisfied. Real hypothalamus: integrates internal body state (blood glucose, temperature, osmolarity) to generate drive signals (hunger, thirst, arousal). Our version: 2 IB integrator neurons accumulate drive (tonic self-excitation = slowly building motivation). 1 CH burst neuron fires when drive reaches threshold (the 'urge' signal). 1 FS inhibition neuron receives satisfaction signal and kills the drive. 1 RS output provides continuous drive level. 1 LTS provides slow recovery after satisfaction (refractory period before drive builds again). The key feature: drive BUILDS over time from self-excitation, even without external input. Satisfaction kills the drive. Then it slowly rebuilds. Implements: intrinsic motivation, homeostatic regulation, drive-reduction behavior, arousal modulation.",
+  "nodes": [
+    {"id": 0, "type": "IB", "x": 0.0, "z": 0.0},
+    {"id": 1, "type": "IB", "x": 0.0, "z": 2.0},
+
+    {"id": 2, "type": "CH", "x": 2.0, "z": 1.0, "params": {"a": 0.02, "c": -55.0, "d": 4.0}},
+
+    {"id": 3, "type": "FS", "x": 2.0, "z": -1.0},
+
+    {"id": 4, "type": "RS", "x": 4.0, "z": 1.0},
+
+    {"id": 5, "type": "LTS", "x": 4.0, "z": -1.0}
+  ],
+  "paths": [
+    {"source": 0, "target": 0, "synapse_type": "fixed", "weight": 3.0, "delay": 5},
+    {"source": 1, "target": 1, "synapse_type": "fixed", "weight": 3.0, "delay": 5},
+    {"source": 0, "target": 1, "synapse_type": "fixed", "weight": 4.0, "delay": 1},
+    {"source": 1, "target": 0, "synapse_type": "fixed", "weight": 4.0, "delay": 1},
+
+    {"source": 0, "target": 2, "synapse_type": "fixed", "weight": 6.0, "delay": 1},
+    {"source": 1, "target": 2, "synapse_type": "fixed", "weight": 6.0, "delay": 1},
+
+    {"source": 0, "target": 4, "synapse_type": "fixed", "weight": 4.0, "delay": 1},
+    {"source": 1, "target": 4, "synapse_type": "fixed", "weight": 4.0, "delay": 1},
+    {"source": 2, "target": 4, "synapse_type": "fixed", "weight": 8.0, "delay": 1},
+
+    {"source": 3, "target": 0, "synapse_type": "fixed", "weight": -25.0, "delay": 1},
+    {"source": 3, "target": 1, "synapse_type": "fixed", "weight": -25.0, "delay": 1},
+    {"source": 3, "target": 2, "synapse_type": "fixed", "weight": -20.0, "delay": 1},
+
+    {"source": 3, "target": 5, "synapse_type": "fixed", "weight": 10.0, "delay": 1},
+    {"source": 5, "target": 0, "synapse_type": "fixed", "weight": -6.0, "delay": 1},
+    {"source": 5, "target": 1, "synapse_type": "fixed", "weight": -6.0, "delay": 1}
+  ],
+  "terminals": [
+    {"id": 0, "bind_type": "input",  "neuron_ids": [0, 1], "label": "need_in"},
+    {"id": 1, "bind_type": "input",  "neuron_ids": [3],    "label": "satisfy_in"},
+    {"id": 2, "bind_type": "output", "neuron_ids": [4],    "label": "drive_out"},
+    {"id": 3, "bind_type": "output", "neuron_ids": [2],    "label": "urge_out"}
+  ]
+}

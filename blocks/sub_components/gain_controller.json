@@ -1,0 +1,19 @@
+{
+  "name": "gain_controller",
+  "description": "Arousal/attention modulator. Two CH pacemakers with gap junction synchronization. Silent at baseline tonic (2.5mA, below CH bifurcation ~3.78). When driven by sensory input via RS relay, CH neurons begin oscillating — stronger input = faster oscillation = more output spikes. The CH output modulates downstream circuits (command, motor) as an amplitude signal. RS relay filters brief noise from sustained drive. Use case: arousal from touch, attention scaling, global sensitivity control.",
+  "nodes": [
+    {"id": 0, "type": "CH", "x": 0.0, "z": 1.0},
+    {"id": 1, "type": "CH", "x": 0.0, "z": -1.0},
+    {"id": 2, "type": "RS", "x": -2.0, "z": 0.0}
+  ],
+  "paths": [
+    {"source": 0, "target": 1, "synapse_type": "gap_junction", "weight": 0.1, "delay": 0, "params": {"conductance": 0.2}},
+
+    {"source": 2, "target": 0, "synapse_type": "fixed", "weight": 5.0, "delay": 1},
+    {"source": 2, "target": 1, "synapse_type": "fixed", "weight": 5.0, "delay": 1}
+  ],
+  "terminals": [
+    {"id": 0, "bind_type": "input",  "neuron_ids": [2], "label": "drive_in"},
+    {"id": 1, "bind_type": "output", "neuron_ids": [0, 1], "label": "modulation_out"}
+  ]
+}

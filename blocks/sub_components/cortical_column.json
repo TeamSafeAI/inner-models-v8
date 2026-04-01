@@ -1,0 +1,57 @@
+{
+  "name": "cortical_column",
+  "description": "Miniature cortical column — the repeating computational unit of neocortex. Real cortex has ~150,000 of these, each with ~80-100 neurons. Ours is a minimal version: Layer 4 (input): 2 RS receive thalamic relay. Layer 2/3 (processing): 3 RS with lateral connections and STDP for pattern learning. Layer 5 (output): 2 RS project to subcortical targets. 1 FS provides local inhibition (basket cell analog). 1 LTS provides sustained inhibition (Martinotti cell analog). Gap junctions sync the processing layer. STDP on input→processing makes columns learn to respond to specific patterns. Multiple columns compete via lateral_inhibition between them. The column that best matches input wins. Implements: feature detection, pattern classification, cortical learning.",
+  "nodes": [
+    {"id": 0, "type": "RS", "x": 0.0, "z": 0.0},
+    {"id": 1, "type": "RS", "x": 0.0, "z": 2.0},
+
+    {"id": 2, "type": "RS", "x": 2.0, "z": -1.0},
+    {"id": 3, "type": "RS", "x": 2.0, "z": 1.0},
+    {"id": 4, "type": "RS", "x": 2.0, "z": 3.0},
+
+    {"id": 5, "type": "RS", "x": 4.0, "z": 0.0},
+    {"id": 6, "type": "RS", "x": 4.0, "z": 2.0},
+
+    {"id": 7, "type": "FS", "x": 2.0, "z": 5.0},
+    {"id": 8, "type": "LTS", "x": 2.0, "z": -3.0}
+  ],
+  "paths": [
+    {"source": 0, "target": 2, "synapse_type": "plastic", "weight": 5.0, "delay": 1,
+     "params": {"learning_rate": 0.2, "w_min": 0.0, "w_max": 10.0, "tau_plus": 20.0}},
+    {"source": 0, "target": 3, "synapse_type": "plastic", "weight": 5.0, "delay": 1,
+     "params": {"learning_rate": 0.2, "w_min": 0.0, "w_max": 10.0, "tau_plus": 20.0}},
+    {"source": 1, "target": 3, "synapse_type": "plastic", "weight": 5.0, "delay": 1,
+     "params": {"learning_rate": 0.2, "w_min": 0.0, "w_max": 10.0, "tau_plus": 20.0}},
+    {"source": 1, "target": 4, "synapse_type": "plastic", "weight": 5.0, "delay": 1,
+     "params": {"learning_rate": 0.2, "w_min": 0.0, "w_max": 10.0, "tau_plus": 20.0}},
+
+    {"source": 2, "target": 3, "synapse_type": "fixed", "weight": 4.0, "delay": 1},
+    {"source": 3, "target": 4, "synapse_type": "fixed", "weight": 4.0, "delay": 1},
+    {"source": 4, "target": 2, "synapse_type": "fixed", "weight": 4.0, "delay": 1},
+    {"source": 2, "target": 3, "synapse_type": "gap_junction", "weight": 0.1, "delay": 0, "params": {"conductance": 0.1}},
+    {"source": 3, "target": 4, "synapse_type": "gap_junction", "weight": 0.1, "delay": 0, "params": {"conductance": 0.1}},
+
+    {"source": 2, "target": 5, "synapse_type": "fixed", "weight": 6.0, "delay": 1},
+    {"source": 3, "target": 5, "synapse_type": "fixed", "weight": 6.0, "delay": 1},
+    {"source": 3, "target": 6, "synapse_type": "fixed", "weight": 6.0, "delay": 1},
+    {"source": 4, "target": 6, "synapse_type": "fixed", "weight": 6.0, "delay": 1},
+
+    {"source": 7, "target": 2, "synapse_type": "fixed", "weight": -12.0, "delay": 1},
+    {"source": 7, "target": 3, "synapse_type": "fixed", "weight": -12.0, "delay": 1},
+    {"source": 7, "target": 4, "synapse_type": "fixed", "weight": -12.0, "delay": 1},
+    {"source": 5, "target": 7, "synapse_type": "fixed", "weight": 5.0, "delay": 1},
+    {"source": 6, "target": 7, "synapse_type": "fixed", "weight": 5.0, "delay": 1},
+
+    {"source": 8, "target": 2, "synapse_type": "fixed", "weight": -6.0, "delay": 1},
+    {"source": 8, "target": 3, "synapse_type": "fixed", "weight": -6.0, "delay": 1},
+    {"source": 8, "target": 4, "synapse_type": "fixed", "weight": -6.0, "delay": 1},
+    {"source": 5, "target": 8, "synapse_type": "fixed", "weight": 3.0, "delay": 1},
+    {"source": 6, "target": 8, "synapse_type": "fixed", "weight": 3.0, "delay": 1}
+  ],
+  "terminals": [
+    {"id": 0, "bind_type": "input",  "neuron_ids": [0, 1], "label": "thalamic_in"},
+    {"id": 1, "bind_type": "input",  "neuron_ids": [7],    "label": "inhibit_in"},
+    {"id": 2, "bind_type": "output", "neuron_ids": [5, 6], "label": "cortical_out"},
+    {"id": 3, "bind_type": "output", "neuron_ids": [2, 3, 4], "label": "layer23_out"}
+  ]
+}

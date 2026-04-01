@@ -1,0 +1,35 @@
+{
+  "name": "reward_circuit",
+  "description": "Dopamine-like reward prediction circuit. Core of reinforcement learning. Two pathways: (1) REWARD path: RS sensor detects positive outcome → CH burst neuron fires a phasic dopamine signal → strengthens recently-active STDP connections via gated synapses downstream. (2) PREDICTION path: When reward is expected (learned via plastic synapse from context), prediction RS fires → suppresses surprise burst via FS. Result: unexpected reward = big burst (learning signal), expected reward = small burst (no new learning), expected but absent reward = depression (punishment signal from LTS rebound). This is the temporal difference (TD) error signal. Implements: reward-based learning, habit formation, motivation.",
+  "nodes": [
+    {"id": 0, "type": "RS", "x": 0.0, "z": 0.0},
+    {"id": 1, "type": "RS", "x": 0.0, "z": 2.0},
+    {"id": 2, "type": "CH", "x": 2.0, "z": 1.0, "params": {"a": 0.02, "c": -55.0, "d": 4.0}},
+    {"id": 3, "type": "FS", "x": 2.0, "z": -1.0},
+    {"id": 4, "type": "LTS", "x": 4.0, "z": -1.0},
+    {"id": 5, "type": "RS", "x": 4.0, "z": 1.0},
+    {"id": 6, "type": "RS", "x": 4.0, "z": 3.0}
+  ],
+  "paths": [
+    {"source": 0, "target": 2, "synapse_type": "fixed", "weight": 12.0, "delay": 1},
+    {"source": 0, "target": 5, "synapse_type": "fixed", "weight": 6.0, "delay": 1},
+
+    {"source": 1, "target": 3, "synapse_type": "plastic", "weight": 2.0, "delay": 1,
+     "params": {"learning_rate": 0.3, "w_min": 0.0, "w_max": 10.0, "tau_plus": 20.0}},
+
+    {"source": 3, "target": 2, "synapse_type": "fixed", "weight": -20.0, "delay": 1},
+
+    {"source": 3, "target": 4, "synapse_type": "fixed", "weight": -12.0, "delay": 1},
+
+    {"source": 4, "target": 6, "synapse_type": "fixed", "weight": 10.0, "delay": 1},
+
+    {"source": 2, "target": 5, "synapse_type": "fixed", "weight": 8.0, "delay": 1}
+  ],
+  "terminals": [
+    {"id": 0, "bind_type": "input",  "neuron_ids": [0],    "label": "reward_in"},
+    {"id": 1, "bind_type": "input",  "neuron_ids": [1],    "label": "prediction_in"},
+    {"id": 2, "bind_type": "output", "neuron_ids": [5],    "label": "reward_out"},
+    {"id": 3, "bind_type": "output", "neuron_ids": [6],    "label": "punishment_out"},
+    {"id": 4, "bind_type": "output", "neuron_ids": [2],    "label": "dopamine_out"}
+  ]
+}

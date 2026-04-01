@@ -1,0 +1,37 @@
+{
+  "name": "sequence_detector",
+  "description": "Fires when A precedes B within ~300 tick window. A triggers bistable CH ring (a=0,c=-65,d=0) and schedules FS kill at delay=300. FS has self-excitation (w=15, d=2) creating burst that kills CH ring (w=-30). Memory biases coincidence RS weakly (w=1 per CH, ~1 mA/tick average, below rheobase alone). B input (w=5) also below threshold alone. Together: ~6 mA + tonic 2.5 = ~8.5 -> coincidence fires. A alone: 1+2.5=3.5 -> doesn't fire. B alone: 5+2.5=7.5 -> doesn't fire. Both: fires. After 300 ticks, memory auto-kills. Tested: correct order fires, wrong order silent, either alone silent, past-window silent.",
+  "nodes": [
+    {"id": 0, "type": "RS", "x": 0.0, "z": 0.0},
+    {"id": 1, "type": "CH", "x": 2.0, "z": 1.0, "params": {"a": 0.0, "c": -65.0, "d": 0.0}},
+    {"id": 2, "type": "CH", "x": 2.0, "z": -1.0, "params": {"a": 0.0, "c": -65.0, "d": 0.0}},
+    {"id": 3, "type": "FS", "x": 4.0, "z": 2.0},
+    {"id": 4, "type": "RS", "x": 0.0, "z": -3.0},
+    {"id": 5, "type": "RS", "x": 4.0, "z": 0.0}
+  ],
+  "paths": [
+    {"source": 0, "target": 1, "synapse_type": "fixed", "weight": 10.0, "delay": 1},
+    {"source": 0, "target": 2, "synapse_type": "fixed", "weight": 10.0, "delay": 1},
+
+    {"source": 1, "target": 2, "synapse_type": "fixed", "weight": 12.0, "delay": 1},
+    {"source": 2, "target": 1, "synapse_type": "fixed", "weight": 12.0, "delay": 1},
+    {"source": 1, "target": 1, "synapse_type": "fixed", "weight": 8.0, "delay": 2},
+    {"source": 2, "target": 2, "synapse_type": "fixed", "weight": 8.0, "delay": 2},
+
+    {"source": 0, "target": 3, "synapse_type": "fixed", "weight": 20.0, "delay": 300},
+    {"source": 3, "target": 3, "synapse_type": "fixed", "weight": 15.0, "delay": 2},
+    {"source": 3, "target": 1, "synapse_type": "fixed", "weight": -30.0, "delay": 1},
+    {"source": 3, "target": 2, "synapse_type": "fixed", "weight": -30.0, "delay": 1},
+
+    {"source": 1, "target": 5, "synapse_type": "fixed", "weight": 1.0, "delay": 1},
+    {"source": 2, "target": 5, "synapse_type": "fixed", "weight": 1.0, "delay": 1},
+
+    {"source": 4, "target": 5, "synapse_type": "fixed", "weight": 5.0, "delay": 1}
+  ],
+  "terminals": [
+    {"id": 0, "bind_type": "input",  "neuron_ids": [0], "label": "sequence_a"},
+    {"id": 1, "bind_type": "input",  "neuron_ids": [4], "label": "sequence_b"},
+    {"id": 2, "bind_type": "output", "neuron_ids": [5], "label": "sequence_out"},
+    {"id": 3, "bind_type": "output", "neuron_ids": [1, 2], "label": "memory_out"}
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "name": "sensory_bank",
+  "description": "Generic sensory channel — converts external current to spikes. Agnostic to modality: what it senses depends entirely on what you wire to channel_in. Two RS input neurons coupled by gap junction for noise reduction. One RS output relay with depressing input for adaptation (constant stimulus weakens over time, recovers when stimulus stops). Each instance is ONE channel. Use many instances for a sensory array (e.g., 64 for frequency bands, 100 for spatial pixels). Inspired by the ferret experiment: the downstream brain learns what the signal means, not this circuit.",
+  "nodes": [
+    {"id": 0, "type": "RS", "x": 0.0, "z": 0.0},
+    {"id": 1, "type": "RS", "x": 1.0, "z": 0.0},
+    {"id": 2, "type": "RS", "x": 0.5, "z": 2.0}
+  ],
+  "paths": [
+    {"source": 0, "target": 1, "synapse_type": "gap_junction", "weight": 0.1, "delay": 0, "params": {"conductance": 0.15}},
+
+    {"source": 0, "target": 2, "synapse_type": "depressing", "weight": 8.0, "delay": 1,
+     "params": {"depress_factor": 0.6, "tau_recovery": 300.0}},
+    {"source": 1, "target": 2, "synapse_type": "depressing", "weight": 8.0, "delay": 1,
+     "params": {"depress_factor": 0.6, "tau_recovery": 300.0}}
+  ],
+  "terminals": [
+    {"id": 0, "bind_type": "input",  "neuron_ids": [0, 1], "label": "channel_in"},
+    {"id": 1, "bind_type": "output", "neuron_ids": [2],    "label": "sensory_out"}
+  ]
+}

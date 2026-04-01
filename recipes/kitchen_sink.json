@@ -1,0 +1,26 @@
+{
+  "name": "kitchen_sink",
+  "description": "Every component type, 5 copies each. 500+ neurons. Test scaling and emergent dynamics.",
+  "seed": 42,
+  "output": "brains/kitchen_sink.db",
+  "components": [
+    {"path": "novelty_detector", "count": 5},
+    {"path": "emotional_state", "count": 5},
+    {"path": "command_decision_v2", "count": 3},
+    {"path": "working_memory_cell", "count": 5},
+    {"path": "gain_controller", "count": 5},
+    {"path": "cpg_oscillator", "count": 5},
+    {"path": "sequence_detector", "count": 3},
+    {"path": "state_machine_3", "count": 2},
+    {"path": "winner_take_all", "count": 3},
+    {"path": "rebound_timer", "count": 3},
+    {"path": "bistable_motif", "count": 5}
+  ],
+  "wiring": {
+    "max_distance": 25.0,
+    "probability": 0.35,
+    "weight_scale": 1.0,
+    "inhibition_fraction": 0.3,
+    "auto_timers": true
+  }
+}

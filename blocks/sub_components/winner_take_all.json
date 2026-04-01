@@ -1,0 +1,47 @@
+{
+  "name": "winner_take_all",
+  "description": "Proportional competition between two groups via FS lateral inhibition. Each group: 2 IB integrators + 1 FS inhibitor with self-excitation (w=15, d=2 creates ~7-spike bursts). FS cross-inhibits opposing IB (w=-30). Output ratio scales with input difference: ~2.5x for 3:1 drive, ~1.5x for 1.5:1 drive. NOT full suppression — proportional. Silent after stimulus ends. For true binary selection (only ONE winner), use command_decision_v2 or state_machine_3 instead. This is biologically realistic: cortical WTA also shows proportional competition, not winner-take-all, at moderate input differences.",
+  "nodes": [
+    {"id": 0, "type": "IB", "x": 0.0, "z": 2.0},
+    {"id": 1, "type": "IB", "x": 1.0, "z": 2.0},
+    {"id": 2, "type": "FS", "x": 0.5, "z": 0.5},
+
+    {"id": 3, "type": "IB", "x": 0.0, "z": -2.0},
+    {"id": 4, "type": "IB", "x": 1.0, "z": -2.0},
+    {"id": 5, "type": "FS", "x": 0.5, "z": -0.5}
+  ],
+  "paths": [
+    {"source": 0, "target": 0, "synapse_type": "fixed", "weight": 5.0, "delay": 2},
+    {"source": 1, "target": 1, "synapse_type": "fixed", "weight": 5.0, "delay": 2},
+    {"source": 0, "target": 1, "synapse_type": "fixed", "weight": 5.0, "delay": 1},
+    {"source": 1, "target": 0, "synapse_type": "fixed", "weight": 5.0, "delay": 1},
+
+    {"source": 0, "target": 2, "synapse_type": "fixed", "weight": 8.0, "delay": 1},
+    {"source": 1, "target": 2, "synapse_type": "fixed", "weight": 8.0, "delay": 1},
+
+    {"source": 3, "target": 3, "synapse_type": "fixed", "weight": 5.0, "delay": 2},
+    {"source": 4, "target": 4, "synapse_type": "fixed", "weight": 5.0, "delay": 2},
+    {"source": 3, "target": 4, "synapse_type": "fixed", "weight": 5.0, "delay": 1},
+    {"source": 4, "target": 3, "synapse_type": "fixed", "weight": 5.0, "delay": 1},
+
+    {"source": 3, "target": 5, "synapse_type": "fixed", "weight": 8.0, "delay": 1},
+    {"source": 4, "target": 5, "synapse_type": "fixed", "weight": 8.0, "delay": 1},
+
+    {"source": 2, "target": 3, "synapse_type": "fixed", "weight": -30.0, "delay": 1},
+    {"source": 2, "target": 4, "synapse_type": "fixed", "weight": -30.0, "delay": 1},
+    {"source": 5, "target": 0, "synapse_type": "fixed", "weight": -30.0, "delay": 1},
+    {"source": 5, "target": 1, "synapse_type": "fixed", "weight": -30.0, "delay": 1},
+
+    {"source": 2, "target": 5, "synapse_type": "fixed", "weight": -15.0, "delay": 1},
+    {"source": 5, "target": 2, "synapse_type": "fixed", "weight": -15.0, "delay": 1},
+
+    {"source": 2, "target": 2, "synapse_type": "fixed", "weight": 15.0, "delay": 2},
+    {"source": 5, "target": 5, "synapse_type": "fixed", "weight": 15.0, "delay": 2}
+  ],
+  "terminals": [
+    {"id": 0, "bind_type": "input",  "neuron_ids": [0, 1], "label": "input_a"},
+    {"id": 1, "bind_type": "input",  "neuron_ids": [3, 4], "label": "input_b"},
+    {"id": 2, "bind_type": "output", "neuron_ids": [0, 1], "label": "winner_a"},
+    {"id": 3, "bind_type": "output", "neuron_ids": [3, 4], "label": "winner_b"}
+  ]
+}

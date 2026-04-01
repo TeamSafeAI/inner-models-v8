@@ -1,0 +1,21 @@
+{
+  "name": "novelty_detector",
+  "description": "Fires for NEW inputs, silent for repeated. Core mechanism: depressing synapse (w=20, factor=0.5) weakens with each use. RS single-tick threshold at tonic 2.5 is ~7.2 mA (separatrix crossing). First presentation delivers 20*0.5=10 mA (fires), second spike same presentation delivers 20*0.25=5 (silent). After 190 ticks partial recovery, 2nd presentation delivers ~4.9 (silent). After ~1200 ticks, gain recovers to ~0.93, delivers 9.3 (fires = novel again). The facilitating path provides a parallel 'familiarity' signal that grows with repetition. Use case: attention, habituation, exploration drive.",
+  "nodes": [
+    {"id": 0, "type": "RS", "x": 0.0, "z": 0.0},
+    {"id": 1, "type": "RS", "x": 2.0, "z": 0.0},
+    {"id": 2, "type": "RS", "x": 2.0, "z": 3.0}
+  ],
+  "paths": [
+    {"source": 0, "target": 1, "synapse_type": "depressing", "weight": 20.0, "delay": 1,
+     "params": {"depress_factor": 0.5, "tau_recovery": 500.0}},
+
+    {"source": 0, "target": 2, "synapse_type": "facilitating", "weight": 10.0, "delay": 1,
+     "params": {"facil_increment": 0.3, "tau_recovery": 200.0}}
+  ],
+  "terminals": [
+    {"id": 0, "bind_type": "input",  "neuron_ids": [0], "label": "stimulus_in"},
+    {"id": 1, "bind_type": "output", "neuron_ids": [1], "label": "novelty_out"},
+    {"id": 2, "bind_type": "output", "neuron_ids": [2], "label": "familiar_out"}
+  ]
+}

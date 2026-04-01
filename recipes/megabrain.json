@@ -1,0 +1,1170 @@
+{
+  "seed": 2025,
+  "output": "brains/megabrain.db",
+  "layer_spacing": 60.0,
+  "components": [
+    {
+      "path": "mechanosensory",
+      "count": 150,
+      "layer": 0
+    },
+    {
+      "path": "chemosensory",
+      "count": 90,
+      "layer": 0
+    },
+    {
+      "path": "thalamic_relay",
+      "count": 300,
+      "layer": 1
+    },
+    {
+      "path": "cortical_column",
+      "count": 280,
+      "layer": 2
+    },
+    {
+      "path": "prefrontal_circuit",
+      "count": 90,
+      "layer": 2
+    },
+    {
+      "path": "basal_ganglia",
+      "count": 120,
+      "layer": 3
+    },
+    {
+      "path": "hippocampal_circuit",
+      "count": 100,
+      "layer": 4
+    },
+    {
+      "path": "working_memory_cell",
+      "count": 150,
+      "layer": 4
+    },
+    {
+      "path": "sequence_detector",
+      "count": 80,
+      "layer": 4
+    },
+    {
+      "path": "novelty_detector",
+      "count": 100,
+      "layer": 4
+    },
+    {
+      "path": "emotional_state",
+      "count": 200,
+      "layer": 5
+    },
+    {
+      "path": "lateral_inhibition",
+      "count": 50,
+      "layer": 5
+    },
+    {
+      "path": "gain_controller",
+      "count": 90,
+      "layer": 5
+    },
+    {
+      "path": "bistable_motif",
+      "count": 100,
+      "layer": 5
+    },
+    {
+      "path": "hypothalamic_drive",
+      "count": 100,
+      "layer": 5
+    },
+    {
+      "path": "cerebellar_circuit",
+      "count": 200,
+      "layer": 6
+    },
+    {
+      "path": "reward_circuit",
+      "count": 120,
+      "layer": 7
+    },
+    {
+      "path": "binary_decision",
+      "count": 60,
+      "layer": 8
+    },
+    {
+      "path": "command_decision_v2",
+      "count": 80,
+      "layer": 8
+    },
+    {
+      "path": "forward_motor",
+      "count": 60,
+      "layer": 8
+    },
+    {
+      "path": "backward_motor",
+      "count": 60,
+      "layer": 8
+    },
+    {
+      "path": "cross_inhibition",
+      "count": 50,
+      "layer": 8
+    },
+    {
+      "path": "head_steering",
+      "count": 40,
+      "layer": 8
+    },
+    {
+      "path": "winner_take_all",
+      "count": 30,
+      "layer": 8
+    },
+    {
+      "path": "command_decision",
+      "count": 25,
+      "layer": 8
+    },
+    {
+      "path": "rebound_timer",
+      "count": 200,
+      "layer": 9
+    },
+    {
+      "path": "activity_brake",
+      "count": 150,
+      "layer": 9
+    },
+    {
+      "path": "cpg_oscillator",
+      "count": 80,
+      "layer": 9
+    },
+    {
+      "path": "burst_rebound",
+      "count": 40,
+      "layer": 9
+    },
+    {
+      "path": "modulatory",
+      "count": 60,
+      "layer": 9
+    },
+    {
+      "path": "state_machine_3",
+      "count": 20,
+      "layer": 9
+    },
+    {
+      "path": "cpg",
+      "count": 15,
+      "layer": 9
+    }
+  ],
+  "projections": [
+    {
+      "from_type": "mechanosensory",
+      "to_type": "thalamic_relay",
+      "weight": 8.0,
+      "probability": 0.25,
+      "delay": 1,
+      "synapse_type": "fixed",
+      "from_terminal": "reverse_out",
+      "to_terminal": "sensory_in"
+    },
+    {
+      "from_type": "mechanosensory",
+      "to_type": "thalamic_relay",
+      "weight": 8.0,
+      "probability": 0.25,
+      "delay": 1,
+      "synapse_type": "fixed",
+      "from_terminal": "forward_out",
+      "to_terminal": "sensory_in"
+    },
+    {
+      "from_type": "chemosensory",
+      "to_type": "thalamic_relay",
+      "weight": 7.0,
+      "probability": 0.2,
+      "delay": 1,
+      "synapse_type": "fixed",
+      "from_terminal": "approach_out",
+      "to_terminal": "sensory_in"
+    },
+    {
+      "from_type": "chemosensory",
+      "to_type": "thalamic_relay",
+      "weight": 7.0,
+      "probability": 0.2,
+      "delay": 1,
+      "synapse_type": "fixed",
+      "from_terminal": "avoid_out",
+      "to_terminal": "sensory_in"
+    },
+    {
+      "from_type": "thalamic_relay",
+      "to_type": "cortical_column",
+      "weight": 8.0,
+      "probability": 0.15,
+      "delay": 1,
+      "synapse_type": "fixed",
+      "from_terminal": "relay_out",
+      "to_terminal": "thalamic_in"
+    },
+    {
+      "from_type": "thalamic_relay",
+      "to_type": "prefrontal_circuit",
+      "weight": 6.0,
+      "probability": 0.1,
+      "delay": 1,
+      "synapse_type": "fixed",
+      "from_terminal": "relay_out",
+      "to_terminal": "context_in"
+    },
+    {
+      "from_type": "cortical_column",
+      "to_type": "thalamic_relay",
+      "weight": -6.0,
+      "probability": 0.08,
+      "delay": 1,
+      "synapse_type": "fixed",
+      "from_terminal": "cortical_out",
+      "to_terminal": "gate_in"
+    },
+    {
+      "from_type": "prefrontal_circuit",
+      "to_type": "thalamic_relay",
+      "weight": -5.0,
+      "probability": 0.06,
+      "delay": 1,
+      "synapse_type": "fixed",
+      "from_terminal": "goal_out",
+      "to_terminal": "gate_in"
+    },
+    {
+      "from_type": "cortical_column",
+      "to_type": "basal_ganglia",
+      "weight": 7.0,
+      "probability": 0.12,
+      "delay": 1,
+      "synapse_type": "fixed",
+      "from_terminal": "cortical_out",
+      "to_terminal": "cortical_in"
+    },
+    {
+      "from_type": "prefrontal_circuit",
+      "to_type": "basal_ganglia",
+      "weight": 6.0,
+      "probability": 0.1,
+      "delay": 1,
+      "synapse_type": "fixed",
+      "from_terminal": "goal_out",
+      "to_terminal": "cortical_in"
+    },
+    {
+      "from_type": "basal_ganglia",
+      "to_type": "thalamic_relay",
+      "weight": -8.0,
+      "probability": 0.08,
+      "delay": 1,
+      "synapse_type": "fixed",
+      "from_terminal": "action_out",
+      "to_terminal": "gate_in"
+    },
+    {
+      "from_type": "basal_ganglia",
+      "to_type": "command_decision_v2",
+      "weight": 6.0,
+      "probability": 0.12,
+      "delay": 1,
+      "synapse_type": "fixed",
+      "from_terminal": "go_out",
+      "to_terminal": "fwd_sensory_in"
+    },
+    {
+      "from_type": "basal_ganglia",
+      "to_type": "command_decision_v2",
+      "weight": 6.0,
+      "probability": 0.12,
+      "delay": 1,
+      "synapse_type": "fixed",
+      "from_terminal": "nogo_out",
+      "to_terminal": "bwd_sensory_in"
+    },
+    {
+      "from_type": "basal_ganglia",
+      "to_type": "binary_decision",
+      "weight": 6.0,
+      "probability": 0.1,
+      "delay": 1,
+      "synapse_type": "fixed",
+      "from_terminal": "go_out",
+      "to_terminal": "sensory_a_in"
+    },
+    {
+      "from_type": "basal_ganglia",
+      "to_type": "binary_decision",
+      "weight": 6.0,
+      "probability": 0.1,
+      "delay": 1,
+      "synapse_type": "fixed",
+      "from_terminal": "nogo_out",
+      "to_terminal": "sensory_b_in"
+    },
+    {
+      "from_type": "cortical_column",
+      "to_type": "hippocampal_circuit",
+      "weight": 7.0,
+      "probability": 0.12,
+      "delay": 1,
+      "synapse_type": "fixed",
+      "from_terminal": "layer23_out",
+      "to_terminal": "ec_in"
+    },
+    {
+      "from_type": "cortical_column",
+      "to_type": "working_memory_cell",
+      "weight": 5.0,
+      "probability": 0.08,
+      "delay": 1,
+      "synapse_type": "plastic",
+      "params": {
+        "learning_rate": 0.15,
+        "w_min": 0.0,
+        "w_max": 10.0,
+        "tau_plus": 20.0
+      },
+      "from_terminal": "layer23_out",
+      "to_terminal": "association_in"
+    },
+    {
+      "from_type": "hippocampal_circuit",
+      "to_type": "cortical_column",
+      "weight": 5.0,
+      "probability": 0.06,
+      "delay": 1,
+      "synapse_type": "fixed",
+      "from_terminal": "hippocampal_out",
+      "to_terminal": "thalamic_in"
+    },
+    {
+      "from_type": "hippocampal_circuit",
+      "to_type": "emotional_state",
+      "weight": 8.0,
+      "probability": 0.1,
+      "delay": 1,
+      "synapse_type": "fixed",
+      "from_terminal": "novelty_out",
+      "to_terminal": "trigger_in"
+    },
+    {
+      "from_type": "mechanosensory",
+      "to_type": "novelty_detector",
+      "weight": 8.0,
+      "probability": 0.15,
+      "delay": 1,
+      "synapse_type": "fixed",
+      "from_terminal": "reverse_out",
+      "to_terminal": "stimulus_in"
+    },
+    {
+      "from_type": "mechanosensory",
+      "to_type": "novelty_detector",
+      "weight": 8.0,
+      "probability": 0.1,
+      "delay": 1,
+      "synapse_type": "fixed",
+      "from_terminal": "forward_out",
+      "to_terminal": "stimulus_in"
+    },
+    {
+      "from_type": "chemosensory",
+      "to_type": "novelty_detector",
+      "weight": 7.0,
+      "probability": 0.1,
+      "delay": 1,
+      "synapse_type": "fixed",
+      "from_terminal": "avoid_out",
+      "to_terminal": "stimulus_in"
+    },
+    {
+      "from_type": "novelty_detector",
+      "to_type": "emotional_state",
+      "weight": 10.0,
+      "probability": 0.12,
+      "delay": 1,
+      "synapse_type": "fixed",
+      "from_terminal": "novelty_out",
+      "to_terminal": "trigger_in"
+    },
+    {
+      "from_type": "emotional_state",
+      "to_type": "command_decision_v2",
+      "weight": 2.0,
+      "probability": 0.08,
+      "delay": 1,
+      "synapse_type": "plastic",
+      "params": {
+        "learning_rate": 0.1,
+        "w_min": 0.0,
+        "w_max": 8.0,
+        "tau_plus": 20.0
+      },
+      "from_terminal": "modulate_out",
+      "to_terminal": "modulator_fwd_in"
+    },
+    {
+      "from_type": "emotional_state",
+      "to_type": "command_decision_v2",
+      "weight": 2.0,
+      "probability": 0.08,
+      "delay": 1,
+      "synapse_type": "plastic",
+      "params": {
+        "learning_rate": 0.1,
+        "w_min": 0.0,
+        "w_max": 8.0,
+        "tau_plus": 20.0
+      },
+      "from_terminal": "modulate_out",
+      "to_terminal": "modulator_bwd_in"
+    },
+    {
+      "from_type": "emotional_state",
+      "to_type": "binary_decision",
+      "weight": 3.0,
+      "probability": 0.06,
+      "delay": 1,
+      "synapse_type": "fixed",
+      "from_terminal": "emotion_out",
+      "to_terminal": "modulator_a_in"
+    },
+    {
+      "from_type": "mechanosensory",
+      "to_type": "command_decision_v2",
+      "weight": 8.0,
+      "probability": 0.15,
+      "delay": 1,
+      "synapse_type": "fixed",
+      "from_terminal": "reverse_out",
+      "to_terminal": "bwd_sensory_in"
+    },
+    {
+      "from_type": "mechanosensory",
+      "to_type": "command_decision_v2",
+      "weight": 8.0,
+      "probability": 0.15,
+      "delay": 1,
+      "synapse_type": "fixed",
+      "from_terminal": "forward_out",
+      "to_terminal": "fwd_sensory_in"
+    },
+    {
+      "from_type": "chemosensory",
+      "to_type": "command_decision_v2",
+      "weight": 7.0,
+      "probability": 0.1,
+      "delay": 1,
+      "synapse_type": "fixed",
+      "from_terminal": "avoid_out",
+      "to_terminal": "bwd_sensory_in"
+    },
+    {
+      "from_type": "chemosensory",
+      "to_type": "command_decision_v2",
+      "weight": 7.0,
+      "probability": 0.1,
+      "delay": 1,
+      "synapse_type": "fixed",
+      "from_terminal": "approach_out",
+      "to_terminal": "fwd_sensory_in"
+    },
+    {
+      "from_type": "mechanosensory",
+      "to_type": "head_steering",
+      "weight": 6.0,
+      "probability": 0.1,
+      "delay": 1,
+      "synapse_type": "fixed",
+      "from_terminal": "reverse_out",
+      "to_terminal": "sensory_in"
+    },
+    {
+      "from_type": "chemosensory",
+      "to_type": "head_steering",
+      "weight": 5.0,
+      "probability": 0.08,
+      "delay": 1,
+      "synapse_type": "fixed",
+      "from_terminal": "approach_out",
+      "to_terminal": "sensory_in"
+    },
+    {
+      "from_type": "command_decision_v2",
+      "to_type": "forward_motor",
+      "weight": 8.0,
+      "probability": 0.2,
+      "delay": 1,
+      "synapse_type": "fixed",
+      "from_terminal": "forward_out",
+      "to_terminal": "command_in"
+    },
+    {
+      "from_type": "command_decision_v2",
+      "to_type": "backward_motor",
+      "weight": 8.0,
+      "probability": 0.2,
+      "delay": 1,
+      "synapse_type": "fixed",
+      "from_terminal": "backward_out",
+      "to_terminal": "command_in"
+    },
+    {
+      "from_type": "command_decision_v2",
+      "to_type": "cpg",
+      "weight": 6.0,
+      "probability": 0.15,
+      "delay": 1,
+      "synapse_type": "fixed",
+      "from_terminal": "forward_out",
+      "to_terminal": "command_in"
+    },
+    {
+      "from_type": "command_decision_v2",
+      "to_type": "head_steering",
+      "weight": 5.0,
+      "probability": 0.1,
+      "delay": 1,
+      "synapse_type": "fixed",
+      "from_terminal": "forward_out",
+      "to_terminal": "command_in"
+    },
+    {
+      "from_type": "binary_decision",
+      "to_type": "forward_motor",
+      "weight": 6.0,
+      "probability": 0.1,
+      "delay": 1,
+      "synapse_type": "fixed",
+      "from_terminal": "option_a_out",
+      "to_terminal": "command_in"
+    },
+    {
+      "from_type": "binary_decision",
+      "to_type": "backward_motor",
+      "weight": 6.0,
+      "probability": 0.1,
+      "delay": 1,
+      "synapse_type": "fixed",
+      "from_terminal": "option_b_out",
+      "to_terminal": "command_in"
+    },
+    {
+      "from_type": "forward_motor",
+      "to_type": "cross_inhibition",
+      "weight": 6.0,
+      "probability": 0.15,
+      "delay": 1,
+      "synapse_type": "fixed",
+      "from_terminal": "motor_out_dorsal",
+      "to_terminal": "dorsal_motor_in"
+    },
+    {
+      "from_type": "forward_motor",
+      "to_type": "cross_inhibition",
+      "weight": 6.0,
+      "probability": 0.15,
+      "delay": 1,
+      "synapse_type": "fixed",
+      "from_terminal": "motor_out_ventral",
+      "to_terminal": "ventral_motor_in"
+    },
+    {
+      "from_type": "backward_motor",
+      "to_type": "cross_inhibition",
+      "weight": 6.0,
+      "probability": 0.15,
+      "delay": 1,
+      "synapse_type": "fixed",
+      "from_terminal": "motor_out_dorsal",
+      "to_terminal": "dorsal_motor_in"
+    },
+    {
+      "from_type": "backward_motor",
+      "to_type": "cross_inhibition",
+      "weight": 6.0,
+      "probability": 0.15,
+      "delay": 1,
+      "synapse_type": "fixed",
+      "from_terminal": "motor_out_ventral",
+      "to_terminal": "ventral_motor_in"
+    },
+    {
+      "from_type": "cross_inhibition",
+      "to_type": "forward_motor",
+      "weight": -10.0,
+      "probability": 0.12,
+      "delay": 1,
+      "synapse_type": "fixed",
+      "from_terminal": "inhibit_dorsal_out",
+      "to_terminal": "inhibit_dorsal_in"
+    },
+    {
+      "from_type": "cross_inhibition",
+      "to_type": "forward_motor",
+      "weight": -10.0,
+      "probability": 0.12,
+      "delay": 1,
+      "synapse_type": "fixed",
+      "from_terminal": "inhibit_ventral_out",
+      "to_terminal": "inhibit_ventral_in"
+    },
+    {
+      "from_type": "cross_inhibition",
+      "to_type": "backward_motor",
+      "weight": -10.0,
+      "probability": 0.12,
+      "delay": 1,
+      "synapse_type": "fixed",
+      "from_terminal": "inhibit_dorsal_out",
+      "to_terminal": "inhibit_dorsal_in"
+    },
+    {
+      "from_type": "cross_inhibition",
+      "to_type": "backward_motor",
+      "weight": -10.0,
+      "probability": 0.12,
+      "delay": 1,
+      "synapse_type": "fixed",
+      "from_terminal": "inhibit_ventral_out",
+      "to_terminal": "inhibit_ventral_in"
+    },
+    {
+      "from_type": "forward_motor",
+      "to_type": "cerebellar_circuit",
+      "weight": 6.0,
+      "probability": 0.08,
+      "delay": 1,
+      "synapse_type": "fixed",
+      "from_terminal": "motor_out_dorsal",
+      "to_terminal": "mossy_in"
+    },
+    {
+      "from_type": "backward_motor",
+      "to_type": "cerebellar_circuit",
+      "weight": 6.0,
+      "probability": 0.08,
+      "delay": 1,
+      "synapse_type": "fixed",
+      "from_terminal": "motor_out_dorsal",
+      "to_terminal": "mossy_in"
+    },
+    {
+      "from_type": "cerebellar_circuit",
+      "to_type": "command_decision_v2",
+      "weight": 4.0,
+      "probability": 0.06,
+      "delay": 1,
+      "synapse_type": "fixed",
+      "from_terminal": "nucleus_out",
+      "to_terminal": "modulator_fwd_in"
+    },
+    {
+      "from_type": "cerebellar_circuit",
+      "to_type": "forward_motor",
+      "weight": -6.0,
+      "probability": 0.06,
+      "delay": 1,
+      "synapse_type": "fixed",
+      "from_terminal": "purkinje_out",
+      "to_terminal": "inhibit_dorsal_in"
+    },
+    {
+      "from_type": "reward_circuit",
+      "to_type": "basal_ganglia",
+      "weight": 6.0,
+      "probability": 0.12,
+      "delay": 1,
+      "synapse_type": "fixed",
+      "from_terminal": "dopamine_out",
+      "to_terminal": "dopamine_in"
+    },
+    {
+      "from_type": "reward_circuit",
+      "to_type": "emotional_state",
+      "weight": 8.0,
+      "probability": 0.06,
+      "delay": 1,
+      "synapse_type": "fixed",
+      "from_terminal": "reward_out",
+      "to_terminal": "trigger_in"
+    },
+    {
+      "from_type": "reward_circuit",
+      "to_type": "emotional_state",
+      "weight": 10.0,
+      "probability": 0.08,
+      "delay": 1,
+      "synapse_type": "fixed",
+      "from_terminal": "punishment_out",
+      "to_terminal": "trigger_in"
+    },
+    {
+      "from_type": "cortical_column",
+      "to_type": "reward_circuit",
+      "weight": 5.0,
+      "probability": 0.06,
+      "delay": 1,
+      "synapse_type": "fixed",
+      "from_terminal": "cortical_out",
+      "to_terminal": "prediction_in"
+    },
+    {
+      "from_type": "hypothalamic_drive",
+      "to_type": "prefrontal_circuit",
+      "weight": 5.0,
+      "probability": 0.08,
+      "delay": 1,
+      "synapse_type": "fixed",
+      "from_terminal": "drive_out",
+      "to_terminal": "context_in"
+    },
+    {
+      "from_type": "hypothalamic_drive",
+      "to_type": "gain_controller",
+      "weight": 5.0,
+      "probability": 0.1,
+      "delay": 1,
+      "synapse_type": "fixed",
+      "from_terminal": "urge_out",
+      "to_terminal": "drive_in"
+    },
+    {
+      "from_type": "emotional_state",
+      "to_type": "rebound_timer",
+      "weight": 8.0,
+      "probability": 0.1,
+      "delay": 1,
+      "synapse_type": "fixed",
+      "from_terminal": "emotion_out",
+      "to_terminal": "inhibit_in"
+    },
+    {
+      "from_type": "rebound_timer",
+      "to_type": "emotional_state",
+      "weight": 5.0,
+      "probability": 0.06,
+      "delay": 1,
+      "synapse_type": "fixed",
+      "from_terminal": "rebound_out",
+      "to_terminal": "trigger_in"
+    },
+    {
+      "from_type": "emotional_state",
+      "to_type": "activity_brake",
+      "weight": 5.0,
+      "probability": 0.1,
+      "delay": 1,
+      "synapse_type": "fixed",
+      "from_terminal": "emotion_out",
+      "to_terminal": "sense_in"
+    },
+    {
+      "from_type": "activity_brake",
+      "to_type": "emotional_state",
+      "weight": 15.0,
+      "probability": 0.12,
+      "delay": 1,
+      "synapse_type": "fixed",
+      "from_terminal": "suppress_out",
+      "to_terminal": "calm_in"
+    },
+    {
+      "from_type": "working_memory_cell",
+      "to_type": "command_decision_v2",
+      "weight": 0.5,
+      "probability": 0.06,
+      "delay": 1,
+      "synapse_type": "plastic",
+      "params": {
+        "learning_rate": 0.12,
+        "w_min": 0.0,
+        "w_max": 8.0,
+        "tau_plus": 20.0
+      },
+      "from_terminal": "memory_out",
+      "to_terminal": "modulator_fwd_in"
+    },
+    {
+      "from_type": "working_memory_cell",
+      "to_type": "command_decision_v2",
+      "weight": 0.5,
+      "probability": 0.06,
+      "delay": 1,
+      "synapse_type": "plastic",
+      "params": {
+        "learning_rate": 0.12,
+        "w_min": 0.0,
+        "w_max": 8.0,
+        "tau_plus": 20.0
+      },
+      "from_terminal": "memory_out",
+      "to_terminal": "modulator_bwd_in"
+    },
+    {
+      "from_type": "working_memory_cell",
+      "to_type": "binary_decision",
+      "weight": 0.5,
+      "probability": 0.04,
+      "delay": 1,
+      "synapse_type": "plastic",
+      "params": {
+        "learning_rate": 0.12,
+        "w_min": 0.0,
+        "w_max": 8.0,
+        "tau_plus": 20.0
+      },
+      "from_terminal": "memory_out",
+      "to_terminal": "modulator_a_in"
+    },
+    {
+      "from_type": "cortical_column",
+      "to_type": "hippocampal_circuit",
+      "weight": 0.0,
+      "probability": 0.03,
+      "delay": 1,
+      "synapse_type": "plastic",
+      "params": {
+        "learning_rate": 0.1,
+        "w_min": 0.0,
+        "w_max": 10.0,
+        "tau_plus": 20.0
+      },
+      "from_terminal": "cortical_out",
+      "to_terminal": "ec_in"
+    },
+    {
+      "from_type": "thalamic_relay",
+      "to_type": "emotional_state",
+      "weight": 0.0,
+      "probability": 0.02,
+      "delay": 1,
+      "synapse_type": "plastic",
+      "params": {
+        "learning_rate": 0.08,
+        "w_min": 0.0,
+        "w_max": 8.0,
+        "tau_plus": 20.0
+      },
+      "from_terminal": "relay_out",
+      "to_terminal": "trigger_in"
+    },
+    {
+      "from_type": "hippocampal_circuit",
+      "to_type": "prefrontal_circuit",
+      "weight": 0.0,
+      "probability": 0.03,
+      "delay": 1,
+      "synapse_type": "plastic",
+      "params": {
+        "learning_rate": 0.1,
+        "w_min": 0.0,
+        "w_max": 8.0,
+        "tau_plus": 20.0
+      },
+      "from_terminal": "ca1_out",
+      "to_terminal": "context_in"
+    },
+    {
+      "from_type": "modulatory",
+      "to_type": "gain_controller",
+      "weight": 4.0,
+      "probability": 0.1,
+      "delay": 1,
+      "synapse_type": "fixed",
+      "from_terminal": "dopamine_out",
+      "to_terminal": "drive_in"
+    },
+    {
+      "from_type": "modulatory",
+      "to_type": "reward_circuit",
+      "weight": 5.0,
+      "probability": 0.08,
+      "delay": 1,
+      "synapse_type": "fixed",
+      "from_terminal": "serotonin_out",
+      "to_terminal": "reward_in"
+    },
+    {
+      "from_type": "modulatory",
+      "to_type": "basal_ganglia",
+      "weight": 5.0,
+      "probability": 0.06,
+      "delay": 1,
+      "synapse_type": "fixed",
+      "from_terminal": "dopamine_out",
+      "to_terminal": "dopamine_in"
+    },
+    {
+      "from_type": "mechanosensory",
+      "to_type": "modulatory",
+      "weight": 6.0,
+      "probability": 0.06,
+      "delay": 1,
+      "synapse_type": "fixed",
+      "from_terminal": "reverse_out",
+      "to_terminal": "sensory_in"
+    },
+    {
+      "from_type": "cpg_oscillator",
+      "to_type": "forward_motor",
+      "weight": 5.0,
+      "probability": 0.1,
+      "delay": 1,
+      "synapse_type": "fixed",
+      "to_terminal": "command_in"
+    },
+    {
+      "from_type": "cpg",
+      "to_type": "backward_motor",
+      "weight": 5.0,
+      "probability": 0.1,
+      "delay": 1,
+      "synapse_type": "fixed",
+      "to_terminal": "command_in"
+    },
+    {
+      "from_type": "gain_controller",
+      "to_type": "cortical_column",
+      "weight": -4.0,
+      "probability": 0.06,
+      "delay": 1,
+      "synapse_type": "fixed",
+      "from_terminal": "modulation_out",
+      "to_terminal": "inhibit_in"
+    },
+    {
+      "from_type": "gain_controller",
+      "to_type": "command_decision_v2",
+      "weight": 3.0,
+      "probability": 0.04,
+      "delay": 1,
+      "synapse_type": "fixed",
+      "from_terminal": "modulation_out",
+      "to_terminal": "modulator_fwd_in"
+    },
+    {
+      "from_type": "state_machine_3",
+      "to_type": "command_decision_v2",
+      "weight": 4.0,
+      "probability": 0.06,
+      "delay": 1,
+      "synapse_type": "fixed",
+      "from_terminal": "state_a_out",
+      "to_terminal": "modulator_fwd_in"
+    },
+    {
+      "from_type": "state_machine_3",
+      "to_type": "command_decision_v2",
+      "weight": 4.0,
+      "probability": 0.06,
+      "delay": 1,
+      "synapse_type": "fixed",
+      "from_terminal": "state_b_out",
+      "to_terminal": "modulator_bwd_in"
+    },
+    {
+      "from_type": "mechanosensory",
+      "to_type": "sequence_detector",
+      "weight": 8.0,
+      "probability": 0.06,
+      "delay": 1,
+      "synapse_type": "fixed",
+      "from_terminal": "reverse_out",
+      "to_terminal": "sequence_a"
+    },
+    {
+      "from_type": "chemosensory",
+      "to_type": "sequence_detector",
+      "weight": 8.0,
+      "probability": 0.06,
+      "delay": 1,
+      "synapse_type": "fixed",
+      "from_terminal": "avoid_out",
+      "to_terminal": "sequence_b"
+    },
+    {
+      "from_type": "sequence_detector",
+      "to_type": "emotional_state",
+      "weight": 10.0,
+      "probability": 0.08,
+      "delay": 1,
+      "synapse_type": "fixed",
+      "from_terminal": "sequence_out",
+      "to_terminal": "trigger_in"
+    },
+    {
+      "from_type": "sequence_detector",
+      "to_type": "working_memory_cell",
+      "weight": 8.0,
+      "probability": 0.06,
+      "delay": 1,
+      "synapse_type": "fixed",
+      "from_terminal": "memory_out",
+      "to_terminal": "trigger_in"
+    },
+    {
+      "from_type": "cortical_column",
+      "to_type": "lateral_inhibition",
+      "weight": 5.0,
+      "probability": 0.06,
+      "delay": 1,
+      "synapse_type": "fixed",
+      "from_terminal": "cortical_out"
+    },
+    {
+      "from_type": "lateral_inhibition",
+      "to_type": "cortical_column",
+      "weight": -8.0,
+      "probability": 0.06,
+      "delay": 1,
+      "synapse_type": "fixed",
+      "to_terminal": "inhibit_in"
+    },
+    {
+      "from_type": "prefrontal_circuit",
+      "to_type": "bistable_motif",
+      "weight": 10.0,
+      "probability": 0.06,
+      "delay": 1,
+      "synapse_type": "fixed",
+      "from_terminal": "persist_out",
+      "to_terminal": "trigger_in"
+    },
+    {
+      "from_type": "prefrontal_circuit",
+      "to_type": "bistable_motif",
+      "weight": 20.0,
+      "probability": 0.06,
+      "delay": 1,
+      "synapse_type": "fixed",
+      "from_terminal": "switch_out",
+      "to_terminal": "kill_in"
+    },
+    {
+      "from_type": "command_decision_v2",
+      "to_type": "winner_take_all",
+      "weight": 6.0,
+      "probability": 0.08,
+      "delay": 1,
+      "synapse_type": "fixed",
+      "from_terminal": "forward_out",
+      "to_terminal": "input_a"
+    },
+    {
+      "from_type": "command_decision_v2",
+      "to_type": "winner_take_all",
+      "weight": 6.0,
+      "probability": 0.08,
+      "delay": 1,
+      "synapse_type": "fixed",
+      "from_terminal": "backward_out",
+      "to_terminal": "input_b"
+    },
+    {
+      "from_type": "cpg_oscillator",
+      "to_type": "burst_rebound",
+      "weight": 5.0,
+      "probability": 0.06,
+      "delay": 1,
+      "synapse_type": "fixed"
+    },
+    {
+      "from_type": "burst_rebound",
+      "to_type": "cpg_oscillator",
+      "weight": 4.0,
+      "probability": 0.04,
+      "delay": 1,
+      "synapse_type": "fixed"
+    }
+  ],
+  "wiring": {
+    "max_distance": 50.0,
+    "probability": 0.04,
+    "weight_scale": 1.0,
+    "inhibition_fraction": 0.3,
+    "type_aware_inhibition": true,
+    "auto_timers": true,
+    "exclude_inputs": [
+      "kill_in",
+      "calm_in",
+      "error_in",
+      "dopamine_in",
+      "tonic_in",
+      "satisfy_in",
+      "clear_in"
+    ],
+    "protected_triggers": {
+      "bistable_motif": [
+        "trigger_in"
+      ],
+      "emotional_state": [
+        "trigger_in"
+      ],
+      "working_memory_cell": [
+        "trigger_in",
+        "association_in"
+      ],
+      "state_machine_3": [
+        "trigger_a",
+        "trigger_b",
+        "trigger_c"
+      ],
+      "sequence_detector": [
+        "sequence_a",
+        "sequence_b"
+      ],
+      "command_decision_v2": [
+        "fwd_sensory_in",
+        "bwd_sensory_in",
+        "modulator_fwd_in",
+        "modulator_bwd_in"
+      ],
+      "command_decision": [
+        "fwd_sensory_in",
+        "bwd_sensory_in",
+        "modulator_in"
+      ],
+      "binary_decision": [
+        "sensory_a_in",
+        "sensory_b_in",
+        "modulator_a_in",
+        "modulator_b_in"
+      ],
+      "hypothalamic_drive": [
+        "need_in",
+        "satisfy_in"
+      ],
+      "reward_circuit": [
+        "reward_in",
+        "prediction_in"
+      ],
+      "prefrontal_circuit": [
+        "context_in",
+        "clear_in"
+      ],
+      "cerebellar_circuit": [
+        "mossy_in",
+        "error_in"
+      ],
+      "thalamic_relay": [
+        "sensory_in",
+        "gate_in"
+      ]
+    }
+  }
+}

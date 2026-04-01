@@ -1,0 +1,22 @@
+{
+  "name": "rebound_timer",
+  "description": "Delayed signal via LTS rebound burst. FS inhibitor has self-excitation (w=15, d=2) creating dense burst firing (~every 2-3 ticks) for quasi-continuous LTS suppression. FS inhibits LTS pair (w=-20) pushing v to ~-85, holding u low. When input ends, FS burst decays, LTS rebounds with burst above baseline rate. Longer inhibition = lower u = stronger rebound. LTS fires spontaneously at tonic 2.5 (b=0.25, rheobase=-0.25). The rebound EXCEEDS baseline rate — downstream detects the rate spike. Use case: delayed after-signal, CPG phase reset, sequence timing.",
+  "nodes": [
+    {"id": 0, "type": "FS",  "x": 0.0, "z": 0.0},
+    {"id": 1, "type": "LTS", "x": 2.0, "z": 1.0},
+    {"id": 2, "type": "LTS", "x": 2.0, "z": -1.0}
+  ],
+  "paths": [
+    {"source": 0, "target": 0, "synapse_type": "fixed", "weight": 15.0, "delay": 2},
+
+    {"source": 0, "target": 1, "synapse_type": "fixed", "weight": -20.0, "delay": 1},
+    {"source": 0, "target": 2, "synapse_type": "fixed", "weight": -20.0, "delay": 1},
+
+    {"source": 1, "target": 2, "synapse_type": "fixed", "weight": 4.0, "delay": 1},
+    {"source": 2, "target": 1, "synapse_type": "fixed", "weight": 4.0, "delay": 1}
+  ],
+  "terminals": [
+    {"id": 0, "bind_type": "input",  "neuron_ids": [0], "label": "inhibit_in"},
+    {"id": 1, "bind_type": "output", "neuron_ids": [1, 2], "label": "rebound_out"}
+  ]
+}

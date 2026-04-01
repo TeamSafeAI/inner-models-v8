@@ -1,0 +1,83 @@
+{
+  "name": "exp06_structured_pipeline",
+  "description": "Worm pipeline with H1 structured projections. Directed sensory->command->motor wiring. Random lateral only for minor association. Direct comparison to exp05 (which failed with random-only wiring).",
+  "seed": 606,
+  "output": "brains/exp06_pipeline.db",
+  "components": [
+    {"path": "mechanosensory", "count": 3},
+    {"path": "command_decision_v2", "count": 3},
+    {"path": "cpg", "count": 2},
+    {"path": "forward_motor", "count": 2},
+    {"path": "backward_motor", "count": 2}
+  ],
+  "projections": [
+    {
+      "from_type": "mechanosensory",
+      "to_type": "command_decision_v2",
+      "from_terminal": "reverse_out",
+      "to_terminal": "bwd_sensory_in",
+      "weight": 10.0,
+      "probability": 0.8,
+      "delay": 1,
+      "synapse_type": "fixed"
+    },
+    {
+      "from_type": "mechanosensory",
+      "to_type": "command_decision_v2",
+      "from_terminal": "forward_out",
+      "to_terminal": "fwd_sensory_in",
+      "weight": 10.0,
+      "probability": 0.8,
+      "delay": 1,
+      "synapse_type": "fixed"
+    },
+    {
+      "from_type": "command_decision_v2",
+      "to_type": "forward_motor",
+      "from_terminal": "forward_out",
+      "to_terminal": "command_in",
+      "weight": 10.0,
+      "probability": 0.8,
+      "delay": 1,
+      "synapse_type": "fixed"
+    },
+    {
+      "from_type": "command_decision_v2",
+      "to_type": "backward_motor",
+      "from_terminal": "backward_out",
+      "to_terminal": "command_in",
+      "weight": 10.0,
+      "probability": 0.8,
+      "delay": 1,
+      "synapse_type": "fixed"
+    },
+    {
+      "from_type": "command_decision_v2",
+      "to_type": "cpg",
+      "from_terminal": "forward_out",
+      "to_terminal": "command_in",
+      "weight": 8.0,
+      "probability": 0.6,
+      "delay": 1,
+      "synapse_type": "fixed"
+    },
+    {
+      "from_type": "command_decision_v2",
+      "to_type": "cpg",
+      "from_terminal": "backward_out",
+      "to_terminal": "command_in",
+      "weight": 8.0,
+      "probability": 0.6,
+      "delay": 1,
+      "synapse_type": "fixed"
+    }
+  ],
+  "wiring": {
+    "max_distance": 15.0,
+    "probability": 0.1,
+    "weight_scale": 1.0,
+    "inhibition_fraction": 0.15,
+    "auto_timers": false,
+    "exclude_inputs": ["kill_in", "calm_in"]
+  }
+}

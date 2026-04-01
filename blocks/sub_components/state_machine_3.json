@@ -1,0 +1,106 @@
+{
+  "name": "state_machine_3",
+  "description": "3-state mutual exclusion machine. Each state is a bistable ring (3 CH neurons, a=0/c=-65/d=0). States: A, B, C. Only one active at a time. Each trigger RS both activates its state AND kills the other two via shared FS kill neurons. Cross-inhibition from active state's CH output continuously drives the other states' FS kills, maintaining exclusion after trigger ends. State transitions are clean: trigger new state -> old state dies within 2-3 ticks -> new state sustains indefinitely. Use case: behavioral repertoire (Forward/Backward/Pause), mode selection, finite automata.",
+  "nodes": [
+    {"id": 0,  "type": "CH", "x": -2.0, "z": 4.0, "params": {"a": 0.0, "c": -65.0, "d": 0.0}},
+    {"id": 1,  "type": "CH", "x": 0.0,  "z": 4.0, "params": {"a": 0.0, "c": -65.0, "d": 0.0}},
+    {"id": 2,  "type": "CH", "x": 2.0,  "z": 4.0, "params": {"a": 0.0, "c": -65.0, "d": 0.0}},
+
+    {"id": 3,  "type": "CH", "x": -2.0, "z": 0.0, "params": {"a": 0.0, "c": -65.0, "d": 0.0}},
+    {"id": 4,  "type": "CH", "x": 0.0,  "z": 0.0, "params": {"a": 0.0, "c": -65.0, "d": 0.0}},
+    {"id": 5,  "type": "CH", "x": 2.0,  "z": 0.0, "params": {"a": 0.0, "c": -65.0, "d": 0.0}},
+
+    {"id": 6,  "type": "CH", "x": -2.0, "z": -4.0, "params": {"a": 0.0, "c": -65.0, "d": 0.0}},
+    {"id": 7,  "type": "CH", "x": 0.0,  "z": -4.0, "params": {"a": 0.0, "c": -65.0, "d": 0.0}},
+    {"id": 8,  "type": "CH", "x": 2.0,  "z": -4.0, "params": {"a": 0.0, "c": -65.0, "d": 0.0}},
+
+    {"id": 9,  "type": "RS", "x": -4.0, "z": 4.0},
+    {"id": 10, "type": "RS", "x": -4.0, "z": 0.0},
+    {"id": 11, "type": "RS", "x": -4.0, "z": -4.0},
+
+    {"id": 12, "type": "FS", "x": 4.0,  "z": 4.0},
+    {"id": 13, "type": "FS", "x": 4.0,  "z": 0.0},
+    {"id": 14, "type": "FS", "x": 4.0,  "z": -4.0}
+  ],
+  "paths": [
+    {"source": 0, "target": 1, "synapse_type": "fixed", "weight": 12.0, "delay": 1},
+    {"source": 1, "target": 2, "synapse_type": "fixed", "weight": 12.0, "delay": 1},
+    {"source": 2, "target": 0, "synapse_type": "fixed", "weight": 12.0, "delay": 1},
+    {"source": 0, "target": 0, "synapse_type": "fixed", "weight": 8.0, "delay": 2},
+    {"source": 1, "target": 1, "synapse_type": "fixed", "weight": 8.0, "delay": 2},
+    {"source": 2, "target": 2, "synapse_type": "fixed", "weight": 8.0, "delay": 2},
+
+    {"source": 3, "target": 4, "synapse_type": "fixed", "weight": 12.0, "delay": 1},
+    {"source": 4, "target": 5, "synapse_type": "fixed", "weight": 12.0, "delay": 1},
+    {"source": 5, "target": 3, "synapse_type": "fixed", "weight": 12.0, "delay": 1},
+    {"source": 3, "target": 3, "synapse_type": "fixed", "weight": 8.0, "delay": 2},
+    {"source": 4, "target": 4, "synapse_type": "fixed", "weight": 8.0, "delay": 2},
+    {"source": 5, "target": 5, "synapse_type": "fixed", "weight": 8.0, "delay": 2},
+
+    {"source": 6, "target": 7, "synapse_type": "fixed", "weight": 12.0, "delay": 1},
+    {"source": 7, "target": 8, "synapse_type": "fixed", "weight": 12.0, "delay": 1},
+    {"source": 8, "target": 6, "synapse_type": "fixed", "weight": 12.0, "delay": 1},
+    {"source": 6, "target": 6, "synapse_type": "fixed", "weight": 8.0, "delay": 2},
+    {"source": 7, "target": 7, "synapse_type": "fixed", "weight": 8.0, "delay": 2},
+    {"source": 8, "target": 8, "synapse_type": "fixed", "weight": 8.0, "delay": 2},
+
+    {"source": 9,  "target": 0,  "synapse_type": "fixed", "weight": 10.0, "delay": 1},
+    {"source": 9,  "target": 1,  "synapse_type": "fixed", "weight": 10.0, "delay": 1},
+    {"source": 9,  "target": 2,  "synapse_type": "fixed", "weight": 10.0, "delay": 1},
+    {"source": 10, "target": 3,  "synapse_type": "fixed", "weight": 10.0, "delay": 1},
+    {"source": 10, "target": 4,  "synapse_type": "fixed", "weight": 10.0, "delay": 1},
+    {"source": 10, "target": 5,  "synapse_type": "fixed", "weight": 10.0, "delay": 1},
+    {"source": 11, "target": 6,  "synapse_type": "fixed", "weight": 10.0, "delay": 1},
+    {"source": 11, "target": 7,  "synapse_type": "fixed", "weight": 10.0, "delay": 1},
+    {"source": 11, "target": 8,  "synapse_type": "fixed", "weight": 10.0, "delay": 1},
+
+    {"source": 12, "target": 0,  "synapse_type": "fixed", "weight": -30.0, "delay": 1},
+    {"source": 12, "target": 1,  "synapse_type": "fixed", "weight": -30.0, "delay": 1},
+    {"source": 12, "target": 2,  "synapse_type": "fixed", "weight": -30.0, "delay": 1},
+    {"source": 13, "target": 3,  "synapse_type": "fixed", "weight": -30.0, "delay": 1},
+    {"source": 13, "target": 4,  "synapse_type": "fixed", "weight": -30.0, "delay": 1},
+    {"source": 13, "target": 5,  "synapse_type": "fixed", "weight": -30.0, "delay": 1},
+    {"source": 14, "target": 6,  "synapse_type": "fixed", "weight": -30.0, "delay": 1},
+    {"source": 14, "target": 7,  "synapse_type": "fixed", "weight": -30.0, "delay": 1},
+    {"source": 14, "target": 8,  "synapse_type": "fixed", "weight": -30.0, "delay": 1},
+    {"source": 12, "target": 12, "synapse_type": "fixed", "weight": 15.0, "delay": 2},
+    {"source": 13, "target": 13, "synapse_type": "fixed", "weight": 15.0, "delay": 2},
+    {"source": 14, "target": 14, "synapse_type": "fixed", "weight": 15.0, "delay": 2},
+
+    {"source": 9,  "target": 13, "synapse_type": "fixed", "weight": 15.0, "delay": 1},
+    {"source": 9,  "target": 14, "synapse_type": "fixed", "weight": 15.0, "delay": 1},
+    {"source": 10, "target": 12, "synapse_type": "fixed", "weight": 15.0, "delay": 1},
+    {"source": 10, "target": 14, "synapse_type": "fixed", "weight": 15.0, "delay": 1},
+    {"source": 11, "target": 12, "synapse_type": "fixed", "weight": 15.0, "delay": 1},
+    {"source": 11, "target": 13, "synapse_type": "fixed", "weight": 15.0, "delay": 1},
+
+    {"source": 0,  "target": 13, "synapse_type": "fixed", "weight": 5.0, "delay": 1},
+    {"source": 1,  "target": 13, "synapse_type": "fixed", "weight": 5.0, "delay": 1},
+    {"source": 2,  "target": 13, "synapse_type": "fixed", "weight": 5.0, "delay": 1},
+    {"source": 0,  "target": 14, "synapse_type": "fixed", "weight": 5.0, "delay": 1},
+    {"source": 1,  "target": 14, "synapse_type": "fixed", "weight": 5.0, "delay": 1},
+    {"source": 2,  "target": 14, "synapse_type": "fixed", "weight": 5.0, "delay": 1},
+
+    {"source": 3,  "target": 12, "synapse_type": "fixed", "weight": 5.0, "delay": 1},
+    {"source": 4,  "target": 12, "synapse_type": "fixed", "weight": 5.0, "delay": 1},
+    {"source": 5,  "target": 12, "synapse_type": "fixed", "weight": 5.0, "delay": 1},
+    {"source": 3,  "target": 14, "synapse_type": "fixed", "weight": 5.0, "delay": 1},
+    {"source": 4,  "target": 14, "synapse_type": "fixed", "weight": 5.0, "delay": 1},
+    {"source": 5,  "target": 14, "synapse_type": "fixed", "weight": 5.0, "delay": 1},
+
+    {"source": 6,  "target": 12, "synapse_type": "fixed", "weight": 5.0, "delay": 1},
+    {"source": 7,  "target": 12, "synapse_type": "fixed", "weight": 5.0, "delay": 1},
+    {"source": 8,  "target": 12, "synapse_type": "fixed", "weight": 5.0, "delay": 1},
+    {"source": 6,  "target": 13, "synapse_type": "fixed", "weight": 5.0, "delay": 1},
+    {"source": 7,  "target": 13, "synapse_type": "fixed", "weight": 5.0, "delay": 1},
+    {"source": 8,  "target": 13, "synapse_type": "fixed", "weight": 5.0, "delay": 1}
+  ],
+  "terminals": [
+    {"id": 0, "bind_type": "input",  "neuron_ids": [9],  "label": "trigger_a"},
+    {"id": 1, "bind_type": "input",  "neuron_ids": [10], "label": "trigger_b"},
+    {"id": 2, "bind_type": "input",  "neuron_ids": [11], "label": "trigger_c"},
+    {"id": 3, "bind_type": "output", "neuron_ids": [0, 1, 2], "label": "state_a_out"},
+    {"id": 4, "bind_type": "output", "neuron_ids": [3, 4, 5], "label": "state_b_out"},
+    {"id": 5, "bind_type": "output", "neuron_ids": [6, 7, 8], "label": "state_c_out"}
+  ]
+}
