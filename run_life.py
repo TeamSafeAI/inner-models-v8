@@ -3,13 +3,15 @@ run_life.py -- Give a brain a life, not a test.
 
 Chains multiple arena sessions with different starting positions.
 Each session is a new "day" - different place, same brain, accumulating experience.
+Between sessions, optional "sleep" compresses weights and replays patterns.
 The brain saves after each session, preserving everything it learned.
 
 Usage:
   py run_life.py --brain arena_dev_v2_life_s42.db --sessions 10
   py run_life.py --brain arena_dev_v2_life_s42.db --sessions 50 --ticks 50000
+  py run_life.py --brain arena_dev_v2_life_s42.db --sessions 10 --sleep 2000
 """
-import os, sys, time, argparse, sqlite3
+import os, sys, time, argparse
 import numpy as np
 
 BASE = os.path.dirname(os.path.abspath(__file__))
@@ -19,13 +21,17 @@ from run_arena import run_arena
 
 
 def run_life(db_name, n_sessions=10, ticks_per=100000, sensory_gain=5.0,
-             reward_magnitude=1.0, start_seed=1):
+             reward_magnitude=1.0, start_seed=1, sleep_ticks=0,
+             sleep_compression=0.8):
     """Chain multiple arena sessions with varied starting positions."""
 
+    sleep_str = f", sleep={sleep_ticks} ticks (comp={sleep_compression})" if sleep_ticks > 0 else ""
     print("=" * 70)
     print(f"  LIFE: {db_name}")
     print(f"  {n_sessions} sessions x {ticks_per:,} ticks = {n_sessions * ticks_per:,} total")
     print(f"  Seeds {start_seed} to {start_seed + n_sessions - 1} (varied starts)")
+    if sleep_ticks > 0:
+        print(f"  Sleep: {sleep_ticks:,} ticks between sessions, compression={sleep_compression}")
     print("=" * 70)
 
     t0 = time.time()
@@ -42,7 +48,7 @@ def run_life(db_name, n_sessions=10, ticks_per=100000, sensory_gain=5.0,
                           report_interval=10000)
 
         if result and 'brain' in result:
-            result['brain'].save()
+            brain = result['brain']
 
             # Collect session summary
             summary = {
@@ -57,8 +63,8 @@ def run_life(db_name, n_sessions=10, ticks_per=100000, sensory_gain=5.0,
                 'sensory_spikes': result.get('sensory_spikes', 0),
             }
 
-            # Get reward weight stats
-            rw = [s['weight'] for s in result['brain'].synapses
+            # Get reward weight stats (pre-sleep)
+            rw = [s['weight'] for s in brain.synapses
                   if s['type'] == 'reward_plastic']
             if rw:
                 summary['avg_w'] = np.mean(rw)
@@ -66,6 +72,29 @@ def run_life(db_name, n_sessions=10, ticks_per=100000, sensory_gain=5.0,
                 summary['min_w'] = np.min(rw)
                 summary['max_w'] = np.max(rw)
 
+            # Sleep between sessions (not after the last one)
+            if sleep_ticks > 0 and session < n_sessions - 1:
+                print(f"\n  --- SLEEP ({sleep_ticks:,} ticks, compression={sleep_compression}) ---")
+                t_sleep = time.time()
+                sleep_result = brain.sleep(
+                    ticks=sleep_ticks,
+                    compression=sleep_compression,
+                    seed=seed + 1000  # different noise per sleep
+                )
+                sleep_elapsed = time.time() - t_sleep
+                sr = sleep_result
+                print(f"  Sleep: {sr['replay_spikes']:,} replay spikes in {sleep_elapsed:.1f}s")
+                print(f"  Compression: avg_w {sr['pre_avg_w']:.3f} -> {sr['post_avg_w']:.3f} "
+                      f"({sr['compressed']} synapses)")
+
+                # Post-sleep weight stats
+                rw_post = [s['weight'] for s in brain.synapses
+                           if s['type'] == 'reward_plastic']
+                if rw_post:
+                    summary['post_sleep_avg_w'] = np.mean(rw_post)
+                    summary['post_sleep_std_w'] = np.std(rw_post)
+
+            brain.save()
             history.append(summary)
             print(f"\n  Session {session+1} saved. avg_w={summary.get('avg_w',0):.3f} "
                   f"std_w={summary.get('std_w',0):.3f}")
@@ -77,20 +106,34 @@ def run_life(db_name, n_sessions=10, ticks_per=100000, sensory_gain=5.0,
     print(f"\n{'='*70}")
     print(f"  LIFE SUMMARY: {n_sessions} sessions, {total_ticks:,} ticks in {elapsed:.0f}s")
     print(f"{'='*70}")
-    print(f"  {'Sess':>4s} | {'Seed':>4s} | {'dFood':>6s} | {'Min':>5s} | {'Reward':>7s} | "
-          f"{'Disp':>5s} | {'avg_w':>6s} | {'std_w':>6s}")
-    print(f"  {'-'*65}")
+    has_sleep = any('post_sleep_avg_w' in h for h in history)
+    if has_sleep:
+        print(f"  {'Sess':>4s} | {'Seed':>4s} | {'dFood':>6s} | {'Min':>5s} | {'Reward':>7s} | "
+              f"{'Disp':>5s} | {'avg_w':>6s} | {'->slp':>6s} | {'std_w':>6s}")
+    else:
+        print(f"  {'Sess':>4s} | {'Seed':>4s} | {'dFood':>6s} | {'Min':>5s} | {'Reward':>7s} | "
+              f"{'Disp':>5s} | {'avg_w':>6s} | {'std_w':>6s}")
+    print(f"  {'-'*70}")
     for h in history:
-        print(f"  {h['session']:4d} | {h['seed']:4d} | {h['d_final']:6.1f} | "
-              f"{h['min_dist']:5.1f} | {h['net_reward']:+7.1f} | "
-              f"{h['displacement']:5.1f} | {h.get('avg_w',0):6.3f} | "
-              f"{h.get('std_w',0):6.3f}")
+        line = (f"  {h['session']:4d} | {h['seed']:4d} | {h['d_final']:6.1f} | "
+                f"{h['min_dist']:5.1f} | {h['net_reward']:+7.1f} | "
+                f"{h['displacement']:5.1f} | {h.get('avg_w',0):6.3f} | ")
+        if has_sleep:
+            line += f"{h.get('post_sleep_avg_w', h.get('avg_w',0)):6.3f} | "
+        line += f"{h.get('std_w',0):6.3f}"
+        print(line)
 
     # Weight distribution evolution
     if history:
-        print(f"\n  Weight trajectory: "
-              f"{history[0].get('avg_w',0):.3f} -> {history[-1].get('avg_w',0):.3f} "
-              f"(std: {history[0].get('std_w',0):.3f} -> {history[-1].get('std_w',0):.3f})")
+        first_w = history[0].get('avg_w', 0)
+        last_w = history[-1].get('avg_w', 0)
+        first_std = history[0].get('std_w', 0)
+        last_std = history[-1].get('std_w', 0)
+        print(f"\n  Weight trajectory: {first_w:.3f} -> {last_w:.3f} "
+              f"(std: {first_std:.3f} -> {last_std:.3f})")
+        if has_sleep:
+            last_post = history[-1].get('post_sleep_avg_w', last_w)
+            print(f"  Post-sleep final: {last_post:.3f}")
 
     return history
 
@@ -103,8 +146,13 @@ if __name__ == '__main__':
     p.add_argument('--sensory-gain', type=float, default=5.0)
     p.add_argument('--reward-mag', type=float, default=1.0)
     p.add_argument('--start-seed', type=int, default=1)
+    p.add_argument('--sleep', type=int, default=0,
+                   help='Ticks of sleep between sessions (0=disabled)')
+    p.add_argument('--sleep-compression', type=float, default=0.8,
+                   help='Power-law compression factor (0.8=keep 80%% of deviation)')
     args = p.parse_args()
 
     run_life(args.brain, n_sessions=args.sessions, ticks_per=args.ticks,
              sensory_gain=args.sensory_gain, reward_magnitude=args.reward_mag,
-             start_seed=args.start_seed)
+             start_seed=args.start_seed, sleep_ticks=args.sleep,
+             sleep_compression=args.sleep_compression)

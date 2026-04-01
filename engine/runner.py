@@ -573,6 +573,73 @@ class Brain:
         for gi, si in enumerate(self.dep_idx):
             self.synapses[si]['current_gain'] = float(self.dep_gain[gi])
 
+    def sleep(self, ticks, compression=0.8, noise_amplitude=2.0, seed=None):
+        """Sleep phase: noise replay + synaptic homeostasis.
+
+        Biology: during sleep, spontaneous activity replays recent patterns
+        while synaptic downscaling prevents runaway weight growth.
+
+        Phase 1: Run brain with Gaussian noise (replay).
+          - Regular STDP on plastic/developmental synapses continues
+          - No reward delivery -> reward_plastic weights frozen during replay
+          - Strong patterns get reinforced via coincident replay
+
+        Phase 2: Power-law compression on reward_plastic weights.
+          - w_new = w_init * (w / w_init)^compression
+          - Pulls weights toward initial value while preserving relative order
+          - compression=0.8 -> keep 80% of learned deviation (log-space)
+          - compression=1.0 -> no change, compression=0.5 -> aggressive
+
+        Ref: Sleep-based homeostatic regularization (arxiv 2601.08447)
+        """
+        if ticks <= 0 and (not self.has_reward or compression >= 1.0):
+            return {}
+
+        rng = np.random.RandomState(seed or 0)
+
+        # Phase 1: Noise replay (consolidates plastic/developmental STDP)
+        replay_spikes = 0
+        if ticks > 0:
+            noise = np.zeros(self.n, dtype=np.float64)
+            for t in range(ticks):
+                noise[:] = rng.randn(self.n) * noise_amplitude
+                fired = self.tick(external_I=noise)
+                replay_spikes += len(fired)
+
+        # Phase 2: Power-law compression on reward weights
+        n_compressed = 0
+        pre_avg = 0.0
+        post_avg = 0.0
+        if self.has_reward and compression < 1.0:
+            w_init = 1.0  # All reward_plastic start at 1.0 (schema default)
+            pre_total = 0.0
+            post_total = 0.0
+            nr = len(self.reward_idx)
+            for ri, si in enumerate(self.reward_idx):
+                syn = self.synapses[si]
+                w = syn['weight']
+                pre_total += w
+                if w <= 0 or abs(w - w_init) < 1e-6:
+                    post_total += w
+                    continue
+                # Power-law: preserves ordering, compresses toward w_init
+                w_new = w_init * (w / w_init) ** compression
+                syn['weight'] = max(syn['w_min'], min(syn['w_max'], w_new))
+                post_total += syn['weight']
+                n_compressed += 1
+            if nr > 0:
+                pre_avg = pre_total / nr
+                post_avg = post_total / nr
+
+        result = {
+            'replay_ticks': ticks,
+            'replay_spikes': replay_spikes,
+            'compressed': n_compressed,
+            'pre_avg_w': pre_avg,
+            'post_avg_w': post_avg,
+        }
+        return result
+
     def save(self):
         """Save brain state to database."""
         from engine.loader import save
