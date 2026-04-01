@@ -225,21 +225,40 @@ class Brain:
 
         # Developmental: eligibility + decay + alive mask + FI counters
         self.dev_idx = dev_idx
-        self.dev_elig = np.zeros(len(dev_idx), dtype=np.float64)
         self.dev_decay = np.array(
             [math.exp(-1.0 / t) if t > 0 else 0.0 for t in dev_tau],
             dtype=np.float64)
-        self.dev_alive = np.ones(len(dev_idx), dtype=bool)
-        self.dev_src_fires = np.zeros(len(dev_idx), dtype=np.int64)
-        self.dev_coincidences = np.zeros(len(dev_idx), dtype=np.int64)
         self.has_dev = len(dev_idx) > 0
         if self.has_dev:
+            # Restore state from saved synapses (supports multi-session)
+            self.dev_elig = np.array(
+                [synapses[i].get('eligibility', 0.0) for i in dev_idx], dtype=np.float64)
+            self.dev_alive = np.array(
+                [synapses[i].get('alive', True) for i in dev_idx], dtype=bool)
+            self.dev_src_fires = np.array(
+                [synapses[i].get('source_fires', 0) for i in dev_idx], dtype=np.int64)
+            self.dev_coincidences = np.array(
+                [synapses[i].get('coincidences', 0) for i in dev_idx], dtype=np.int64)
             # Cache critical period params from first dev synapse
             s0 = synapses[dev_idx[0]]
             self.dev_critical_period = s0.get('critical_period', 10000)
             self.dev_eval_interval = s0.get('eval_interval', 2000)
             self.dev_prune_thresh = s0.get('pruning_threshold', 0.02)
             self.dev_min_fires = s0.get('min_source_fires', 20)
+            # If synapses already have significant experience, skip critical period
+            max_fires = int(np.max(self.dev_src_fires)) if len(self.dev_src_fires) > 0 else 0
+            if max_fires > self.dev_min_fires * 10:
+                self.dev_critical_done = True
+                n_dead = int(np.sum(~self.dev_alive))
+                if n_dead > 0:
+                    print(f"  [dev] Loaded: {n_dead} already pruned, critical period complete")
+            else:
+                self.dev_critical_done = False
+        else:
+            self.dev_elig = np.zeros(0, dtype=np.float64)
+            self.dev_alive = np.ones(0, dtype=bool)
+            self.dev_src_fires = np.zeros(0, dtype=np.int64)
+            self.dev_coincidences = np.zeros(0, dtype=np.int64)
 
         # Stats
         n_fixed = sum(len(v[0]) for v in self.fixed_out.values())
@@ -398,8 +417,10 @@ class Brain:
             self.dev_elig *= self.dev_decay
 
         # 10. Developmental pruning (periodic, only during critical period)
-        if self.has_dev and t < self.dev_critical_period and t > 0 and t % self.dev_eval_interval == 0:
+        if self.has_dev and not self.dev_critical_done and t < self.dev_critical_period and t > 0 and t % self.dev_eval_interval == 0:
             self._prune_developmental()
+        if self.has_dev and not self.dev_critical_done and t >= self.dev_critical_period:
+            self.dev_critical_done = True
 
         # 11. Record
         self.recorder.record_tick(fired_list)
