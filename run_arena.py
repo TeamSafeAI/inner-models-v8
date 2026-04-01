@@ -332,6 +332,7 @@ def run_arena(db_name, ticks=60000, learn=True, seed=42,
         'sensory_spikes': sensory_spikes,
         'reward_total': reward_total,
         'displacement': disp,
+        'brain': brain,
     }
 
 
@@ -370,12 +371,16 @@ if __name__ == '__main__':
     p.add_argument('--sensory-gain', type=float, default=5.0)
     p.add_argument('--reward-mag', type=float, default=1.0)
     p.add_argument('--start-distance', type=float, default=20.0)
+    p.add_argument('--save', action='store_true', help='Save brain state after run')
     args = p.parse_args()
 
     if args.compare:
         compare(args.brain, args.ticks, args.seed)
     else:
-        run_arena(args.brain, ticks=args.ticks, learn=not args.no_learn,
+        result = run_arena(args.brain, ticks=args.ticks, learn=not args.no_learn,
                   seed=args.seed, sensory_gain=args.sensory_gain,
                   reward_magnitude=args.reward_mag,
                   start_distance=args.start_distance)
+        if args.save and result and 'brain' in result:
+            result['brain'].save()
+            print(f"\n  Brain state saved to {args.brain}")
