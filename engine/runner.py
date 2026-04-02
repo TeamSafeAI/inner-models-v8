@@ -585,6 +585,11 @@ class Brain:
             n['v'] = float(self.v[i])
             n['u'] = float(self.u[i])
             n['last_spike'] = int(self.last_spike[i])
+            # Save drifted params (may have changed from original type)
+            n['a'] = float(self.a[i])
+            n['b'] = float(self.b[i])
+            n['c'] = float(self.c[i])
+            n['d'] = float(self.d[i])
         for pi, si in enumerate(self.plastic_idx):
             self.synapses[si]['eligibility'] = float(self.plastic_elig[pi])
             self.synapses[si]['elig_post'] = float(self.plastic_elig_post[pi])
@@ -736,6 +741,83 @@ class Brain:
             'top_cofire': candidates[0][0] if candidates else 0,
         }
 
+    def drift(self, drift_rate=0.05, min_ticks=5000, silent_threshold=0.001):
+        """Parameter drift: nudge underperforming neurons toward useful configs.
+
+        Biology: neurons can't switch type. But we're synthetic -- we can
+        engineer a developmental mechanism that biology never found.
+
+        Identifies "silent" neurons (firing rate far below average) and
+        nudges their (a, b, c, d) parameters toward the average of their
+        active connected neighbors. Small steps, reversible, continuous.
+
+        NOT type-switching. A gradual drift that lets a misplaced neuron
+        become something its local circuit actually needs.
+
+        Args:
+            drift_rate: how much to nudge per call (0.05 = 5% toward target)
+            min_ticks: minimum ticks elapsed before drift is applied
+            silent_threshold: firing rate below this = "silent" (spikes/tick)
+
+        Returns:
+            dict with drift stats
+        """
+        if self.tick_count < min_ticks:
+            return {'drifted': 0, 'silent': 0}
+
+        # Count spikes per neuron from recorder
+        spike_counts = np.zeros(self.n, dtype=np.int64)
+        for _, nid in self.recorder.spikes:
+            spike_counts[nid] += 1
+        rates = spike_counts / max(self.tick_count, 1)
+
+        # Find silent neurons
+        silent_mask = rates < silent_threshold
+        n_silent = int(silent_mask.sum())
+        if n_silent == 0:
+            return {'drifted': 0, 'silent': 0}
+
+        # Build neighbor map: for each neuron, who sends it spikes?
+        # (only from active neurons -- we want to drift TOWARD useful params)
+        active_mask = rates >= silent_threshold
+        neighbor_params = {}  # neuron_idx -> list of (a,b,c,d) from active sources
+
+        for syn in self.synapses:
+            src, tgt = syn['source'], syn['target']
+            if silent_mask[tgt] and active_mask[src]:
+                if tgt not in neighbor_params:
+                    neighbor_params[tgt] = []
+                neighbor_params[tgt].append((
+                    self.a[src], self.b[src], self.c[src], self.d[src]
+                ))
+
+        # Drift silent neurons toward their active neighbors' average params
+        drifted = 0
+        for nid in np.flatnonzero(silent_mask):
+            neighbors = neighbor_params.get(int(nid))
+            if not neighbors or len(neighbors) < 2:
+                continue  # no active neighbors to learn from
+
+            # Average neighbor params
+            avg_a = sum(p[0] for p in neighbors) / len(neighbors)
+            avg_b = sum(p[1] for p in neighbors) / len(neighbors)
+            avg_c = sum(p[2] for p in neighbors) / len(neighbors)
+            avg_d = sum(p[3] for p in neighbors) / len(neighbors)
+
+            # Nudge toward average (small step)
+            self.a[nid] += drift_rate * (avg_a - self.a[nid])
+            self.b[nid] += drift_rate * (avg_b - self.b[nid])
+            self.c[nid] += drift_rate * (avg_c - self.c[nid])
+            self.d[nid] += drift_rate * (avg_d - self.d[nid])
+            drifted += 1
+
+        return {
+            'drifted': drifted,
+            'silent': n_silent,
+            'total': self.n,
+            'silent_pct': n_silent / self.n * 100,
+        }
+
     def sleep(self, ticks, compression=0.8, noise_amplitude=2.0, seed=None):
         """Sleep phase: noise replay + synaptic homeostasis.
 
@@ -821,6 +903,9 @@ class Brain:
         # Phase 4: Synaptogenesis (grow new connections from co-firing)
         sprout_result = self.sprout(max_new=50, window=max(ticks, 2000), seed=seed)
 
+        # Phase 5: Parameter drift (nudge silent neurons toward useful configs)
+        drift_result = self.drift()
+
         result = {
             'replay_ticks': ticks,
             'replay_spikes': replay_spikes,
@@ -832,6 +917,9 @@ class Brain:
             'post_plastic_avg': post_plastic_avg,
             'sprouted': sprout_result.get('sprouted', 0),
             'sprout_candidates': sprout_result.get('candidates', 0),
+            'drifted': drift_result.get('drifted', 0),
+            'silent': drift_result.get('silent', 0),
+            'silent_pct': drift_result.get('silent_pct', 0),
         }
         return result
 

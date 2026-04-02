@@ -95,6 +95,9 @@ def run_life(db_name, n_sessions=10, ticks_per=100000, sensory_gain=5.0,
                 if sr.get('sprouted', 0) > 0:
                     print(f"  Synaptogenesis: {sr['sprouted']} new synapses "
                           f"(from {sr['sprout_candidates']} candidates)")
+                if sr.get('drifted', 0) > 0:
+                    print(f"  Parameter drift: {sr['drifted']} neurons nudged "
+                          f"({sr['silent']} silent, {sr['silent_pct']:.1f}% of brain)")
 
                 # Post-sleep weight stats
                 rw_post = [s['weight'] for s in brain.synapses
