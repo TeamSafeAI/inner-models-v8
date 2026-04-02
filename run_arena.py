@@ -49,7 +49,8 @@ def run_arena(db_name, ticks=60000, learn=True, seed=42,
         reward_interval: ticks between reward delivery
         start_distance: starting distance from food
     """
-    db_path = os.path.join(BASE, 'brains', 'zoo', db_name)
+    # Accept both "arena_v1_s42.db" and "brains/zoo/arena_v1_s42.db"
+    db_path = os.path.join(BASE, 'brains', 'zoo', os.path.basename(db_name))
     if not os.path.exists(db_path):
         print(f"  Brain not found: {db_path}")
         print(f"  Run: py build_arena_brain.py")
@@ -174,10 +175,11 @@ def run_arena(db_name, ticks=60000, learn=True, seed=42,
         for idx in chemical_sensors:
             sensory_I[idx] = conc * sensory_gain + max(0, delta_conc) * sensory_gain * 3.0
 
-        # DishBrain chaos: inject random noise over clean sensory signal
+        # DishBrain chaos: inject random noise to ALL neurons (not just sensors)
+        # Real DishBrain: structured input = good, random input = bad
+        # Chaos covers entire brain so motor/decision neurons feel the disorder
         if dishbrain_feedback and chaos_remaining > 0:
-            for idx in chemical_sensors:
-                sensory_I[idx] += rng.randn() * 8.0
+            sensory_I += rng.randn(n) * 5.0
             chaos_remaining -= 1
 
         # Spatial sensing: left/right amphids sample different positions

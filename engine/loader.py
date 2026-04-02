@@ -147,8 +147,8 @@ def save(brain):
 
     for n in brain['neurons']:
         conn.execute(
-            "UPDATE neurons SET v=?, u=?, last_spike=? WHERE id=?",
-            (n['v'], n['u'], n['last_spike'], n['id'])
+            "UPDATE neurons SET v=?, u=?, last_spike=?, a=?, b=?, c=?, d=? WHERE id=?",
+            (n['v'], n['u'], n['last_spike'], n['a'], n['b'], n['c'], n['d'], n['id'])
         )
 
     for syn in brain['synapses'] + brain['gap_junctions']:
