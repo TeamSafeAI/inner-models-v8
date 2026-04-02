@@ -42,6 +42,7 @@ SYNAPSE_DEFAULTS = {
         'w_max': 10.0,
         'tau_plus': 20.0,
         'tau_minus': 20.0,
+        'ltd_ratio': 0.5,
     },
     'facilitating': {
         'tau_facil': 50.0,
@@ -85,7 +86,7 @@ SYNAPSE_DEFAULTS = {
 # Default runtime state per synapse type
 SYNAPSE_INITIAL_STATE = {
     'fixed': {},
-    'plastic': {'eligibility': 0.0},
+    'plastic': {'eligibility': 0.0, 'elig_post': 0.0},
     'facilitating': {'current_gain': 1.0},
     'depressing': {'current_gain': 1.0},
     'gated': {'eligibility': 0.0},

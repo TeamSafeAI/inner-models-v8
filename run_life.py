@@ -22,7 +22,8 @@ from run_arena import run_arena
 
 def run_life(db_name, n_sessions=10, ticks_per=100000, sensory_gain=5.0,
              reward_magnitude=1.0, start_seed=1, sleep_ticks=0,
-             sleep_compression=0.8):
+             sleep_compression=0.8, surprise_reward=False,
+             surprise_alpha=0.25, reward_homeostasis=False):
     """Chain multiple arena sessions with varied starting positions."""
 
     sleep_str = f", sleep={sleep_ticks} ticks (comp={sleep_compression})" if sleep_ticks > 0 else ""
@@ -45,7 +46,9 @@ def run_life(db_name, n_sessions=10, ticks_per=100000, sensory_gain=5.0,
 
         result = run_arena(db_name, ticks=ticks_per, learn=True, seed=seed,
                           sensory_gain=sensory_gain, reward_magnitude=reward_magnitude,
-                          report_interval=10000)
+                          report_interval=10000, surprise_reward=surprise_reward,
+                          surprise_alpha=surprise_alpha,
+                          reward_homeostasis=reward_homeostasis)
 
         if result and 'brain' in result:
             brain = result['brain']
@@ -84,8 +87,14 @@ def run_life(db_name, n_sessions=10, ticks_per=100000, sensory_gain=5.0,
                 sleep_elapsed = time.time() - t_sleep
                 sr = sleep_result
                 print(f"  Sleep: {sr['replay_spikes']:,} replay spikes in {sleep_elapsed:.1f}s")
-                print(f"  Compression: avg_w {sr['pre_avg_w']:.3f} -> {sr['post_avg_w']:.3f} "
+                print(f"  Reward compression: avg_w {sr['pre_avg_w']:.3f} -> {sr['post_avg_w']:.3f} "
                       f"({sr['compressed']} synapses)")
+                if sr.get('plastic_compressed', 0) > 0:
+                    print(f"  Plastic compression: avg_w {sr['pre_plastic_avg']:.3f} -> "
+                          f"{sr['post_plastic_avg']:.3f} ({sr['plastic_compressed']} synapses)")
+                if sr.get('sprouted', 0) > 0:
+                    print(f"  Synaptogenesis: {sr['sprouted']} new synapses "
+                          f"(from {sr['sprout_candidates']} candidates)")
 
                 # Post-sleep weight stats
                 rw_post = [s['weight'] for s in brain.synapses
@@ -150,9 +159,18 @@ if __name__ == '__main__':
                    help='Ticks of sleep between sessions (0=disabled)')
     p.add_argument('--sleep-compression', type=float, default=0.8,
                    help='Power-law compression factor (0.8=keep 80%% of deviation)')
+    p.add_argument('--surprise-reward', action='store_true',
+                   help='Use prediction-error surprise gating for reward')
+    p.add_argument('--surprise-alpha', type=float, default=0.25,
+                   help='EMA alpha for surprise expectation')
+    p.add_argument('--reward-homeostasis', action='store_true',
+                   help='Enable during-reward homeostasis (default: OFF, use sleep instead)')
     args = p.parse_args()
 
     run_life(args.brain, n_sessions=args.sessions, ticks_per=args.ticks,
              sensory_gain=args.sensory_gain, reward_magnitude=args.reward_mag,
              start_seed=args.start_seed, sleep_ticks=args.sleep,
-             sleep_compression=args.sleep_compression)
+             sleep_compression=args.sleep_compression,
+             surprise_reward=args.surprise_reward,
+             surprise_alpha=args.surprise_alpha,
+             reward_homeostasis=args.reward_homeostasis)

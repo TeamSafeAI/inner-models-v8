@@ -33,7 +33,9 @@ from arena import Arena
 def run_arena(db_name, ticks=60000, learn=True, seed=42,
               sensory_gain=5.0, reward_magnitude=1.0,
               report_interval=5000, reward_interval=200,
-              start_distance=20.0):
+              start_distance=20.0, surprise_reward=False,
+              surprise_alpha=0.25, dishbrain_feedback=False,
+              reward_homeostasis=False):
     """Full brain-body-environment chemotaxis loop.
 
     Args:
@@ -60,7 +62,7 @@ def run_arena(db_name, ticks=60000, learn=True, seed=42,
 
     # Load brain
     data = load(db_path)
-    brain = Brain(data, learn=learn)
+    brain = Brain(data, learn=learn, reward_homeostasis=reward_homeostasis)
     n = brain.n
     body_map = data.get('body_map', {})
     sensor_map = data.get('sensor_map', {})
@@ -145,6 +147,8 @@ def run_arena(db_name, ticks=60000, learn=True, seed=42,
         if brain.has_reward else []
 
     prev_conc = c0
+    expected_dc = 0.0  # For surprise-gated reward
+    chaos_remaining = 0  # DishBrain-style chaos countdown
 
     print(f"\n  {'Tick':>8s} | {'Conc':>6s} | {'dFood':>6s} | {'Motor':>6s} | "
           f"{'Sense':>6s} | {'Reward':>7s} | {'pos':>20s}")
@@ -169,6 +173,12 @@ def run_arena(db_name, ticks=60000, learn=True, seed=42,
         # Chemical sensors: absolute + derivative
         for idx in chemical_sensors:
             sensory_I[idx] = conc * sensory_gain + max(0, delta_conc) * sensory_gain * 3.0
+
+        # DishBrain chaos: inject random noise over clean sensory signal
+        if dishbrain_feedback and chaos_remaining > 0:
+            for idx in chemical_sensors:
+                sensory_I[idx] += rng.randn() * 8.0
+            chaos_remaining -= 1
 
         # Spatial sensing: left/right amphids sample different positions
         head_half_width = 0.04
@@ -255,14 +265,29 @@ def run_arena(db_name, ticks=60000, learn=True, seed=42,
             new_conc = arena.concentration_at(body.pos[0], body.pos[1])
             dc = new_conc - prev_conc
 
-            # Positive = moved toward food, negative = moved away
-            if abs(dc) > 0.0001:
-                reward = np.sign(dc) * reward_magnitude
-                brain.deliver_reward(reward)
-                reward_total += reward
-                n_rewards += 1
+            if surprise_reward:
+                # Surprise-gated: only reward when outcome differs from expectation
+                # Mimics dopamine prediction error (Schultz 1997, TD learning)
+                prediction_error = dc - expected_dc
+                expected_dc += surprise_alpha * (dc - expected_dc)
 
-            # Wall punishment
+                if abs(prediction_error) > 0.0005:
+                    # Scale reward by surprise magnitude, clamp to bounds
+                    reward = float(np.clip(
+                        prediction_error * 5.0,
+                        -reward_magnitude, reward_magnitude))
+                    brain.deliver_reward(reward)
+                    reward_total += reward
+                    n_rewards += 1
+            else:
+                # Original: binary reward based on concentration change
+                if abs(dc) > 0.0001:
+                    reward = np.sign(dc) * reward_magnitude
+                    brain.deliver_reward(reward)
+                    reward_total += reward
+                    n_rewards += 1
+
+            # Wall punishment (always active)
             d_wall = arena.radius - np.linalg.norm(body.pos)
             if d_wall < 1.0:
                 brain.deliver_reward(-reward_magnitude * 0.5)
@@ -270,6 +295,12 @@ def run_arena(db_name, ticks=60000, learn=True, seed=42,
                 n_rewards += 1
 
             prev_conc = new_conc
+
+            # DishBrain-style: inject chaos on negative outcome
+            # Clean sensory = structured (approaching food)
+            # Noise blast = chaotic (moving away from food)
+            if dishbrain_feedback and dc < -0.0001:
+                chaos_remaining = reward_interval
 
         # 9. Record trajectory
         if tick % 100 == 0:
@@ -371,7 +402,15 @@ if __name__ == '__main__':
     p.add_argument('--sensory-gain', type=float, default=5.0)
     p.add_argument('--reward-mag', type=float, default=1.0)
     p.add_argument('--start-distance', type=float, default=20.0)
+    p.add_argument('--surprise-reward', action='store_true',
+                   help='Use prediction-error surprise gating for reward delivery')
+    p.add_argument('--surprise-alpha', type=float, default=0.25,
+                   help='EMA alpha for surprise expectation (0.1=slow, 0.5=fast)')
+    p.add_argument('--dishbrain', action='store_true',
+                   help='DishBrain-style feedback: inject chaos when moving away from food')
     p.add_argument('--save', action='store_true', help='Save brain state after run')
+    p.add_argument('--reward-homeostasis', action='store_true',
+                   help='Enable during-reward synaptic homeostasis (default: OFF)')
     args = p.parse_args()
 
     if args.compare:
@@ -380,7 +419,11 @@ if __name__ == '__main__':
         result = run_arena(args.brain, ticks=args.ticks, learn=not args.no_learn,
                   seed=args.seed, sensory_gain=args.sensory_gain,
                   reward_magnitude=args.reward_mag,
-                  start_distance=args.start_distance)
+                  start_distance=args.start_distance,
+                  surprise_reward=args.surprise_reward,
+                  surprise_alpha=args.surprise_alpha,
+                  dishbrain_feedback=args.dishbrain,
+                  reward_homeostasis=args.reward_homeostasis)
         if args.save and result and 'brain' in result:
             result['brain'].save()
             print(f"\n  Brain state saved to {args.brain}")

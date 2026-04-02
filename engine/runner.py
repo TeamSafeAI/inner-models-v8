@@ -30,12 +30,13 @@ from engine.recorder import Recorder
 class Brain:
     """A running brain. Load it, tick it, record it."""
 
-    def __init__(self, brain_data, learn=True):
+    def __init__(self, brain_data, learn=True, reward_homeostasis=False):
         self.data = brain_data
         self.neurons = brain_data['neurons']
         self.synapses = brain_data['synapses']
         self.gap_junctions = brain_data['gap_junctions']
         self.learn = learn
+        self.reward_homeostasis = reward_homeostasis
         self.n = len(self.neurons)
         self.tick_count = 0
 
@@ -98,7 +99,7 @@ class Brain:
         dev_by_tgt = {}
 
         # Collectors for array building
-        plastic_idx, plastic_tau = [], []
+        plastic_idx, plastic_tau, plastic_tau_minus, plastic_ltd_ratio = [], [], [], []
         gated_idx, gated_tau = [], []
         reward_idx, reward_tau_trace, reward_tau_elig = [], [], []
         facil_idx, facil_tau, facil_inc_vals = [], [], []
@@ -120,6 +121,8 @@ class Brain:
                 pos = len(plastic_idx)
                 plastic_idx.append(i)
                 plastic_tau.append(syn.get('tau_plus', 20.0))
+                plastic_tau_minus.append(syn.get('tau_minus', 20.0))
+                plastic_ltd_ratio.append(syn.get('ltd_ratio', 0.5))
                 plastic_by_src.setdefault(src, []).append((i, pos))
                 plastic_by_tgt.setdefault(tgt, []).append((i, pos))
 
@@ -180,12 +183,17 @@ class Brain:
         self.dev_by_source = dev_by_src
         self.dev_by_target = dev_by_tgt
 
-        # Plastic: eligibility + pre-computed decay factor
+        # Plastic: eligibility (pre-trace) + post-trace for LTD + decay factors
         self.plastic_idx = plastic_idx
         self.plastic_elig = np.zeros(len(plastic_idx), dtype=np.float64)
+        self.plastic_elig_post = np.zeros(len(plastic_idx), dtype=np.float64)
         self.plastic_decay = np.array(
             [math.exp(-1.0 / t) if t > 0 else 0.0 for t in plastic_tau],
             dtype=np.float64)
+        self.plastic_decay_post = np.array(
+            [math.exp(-1.0 / t) if t > 0 else 0.0 for t in plastic_tau_minus],
+            dtype=np.float64)
+        self.plastic_ltd_ratio = np.array(plastic_ltd_ratio, dtype=np.float64)
 
         # Gated: same structure
         self.gated_idx = gated_idx
@@ -340,11 +348,28 @@ class Brain:
                 tgts, wts, dlys = fixed
                 np.add.at(spike_buf, ((t + dlys) % buf_size, tgts), wts)
 
-            # 7b. Plastic: bump eligibility, deliver weight
+            # 7b. Plastic: bump pre-elig, apply LTD if post fired recently, deliver weight
             for si, pi in self.plastic_by_source.get(fi, ()):
                 self.plastic_elig[pi] += 1.0
-                syn = synapses[si]
-                spike_buf[(t + syn['delay']) % buf_size, syn['target']] += syn['weight']
+                # LTD: source fired after target (post-before-pre = anti-causal)
+                ep = self.plastic_elig_post[pi]
+                if ep > 0.01:
+                    syn = synapses[si]
+                    w = syn['weight']
+                    lr = syn['learning_rate']
+                    w_min, w_max = syn['w_min'], syn['w_max']
+                    rng = w_max - w_min
+                    if rng > 1e-6:
+                        ltd_r = self.plastic_ltd_ratio[pi]
+                        if w_min < 0 and w_max <= 0:
+                            dw = lr * ltd_r * ep * (w_max - w) / rng
+                        else:
+                            dw = -lr * ltd_r * ep * (w - w_min) / rng
+                        syn['weight'] = max(w_min, min(w_max, w + dw))
+                    spike_buf[(t + syn['delay']) % buf_size, syn['target']] += syn['weight']
+                else:
+                    syn = synapses[si]
+                    spike_buf[(t + syn['delay']) % buf_size, syn['target']] += syn['weight']
 
             # 7c. Gated: bump eligibility, deliver weight
             for si, gi in self.gated_by_source.get(fi, ()):
@@ -385,6 +410,7 @@ class Brain:
         if self.learn and len(fired) > 0:
             for fi in fired_list:
                 for si, pi in self.plastic_by_target.get(fi, ()):
+                    self.plastic_elig_post[pi] += 1.0  # mark post-spike for LTD
                     self._apply_stdp(synapses[si], self.plastic_elig[pi])
 
                 if self.has_gated:
@@ -420,6 +446,7 @@ class Brain:
         # 9. Per-tick decay (vectorized — THE big optimization)
         if len(self.plastic_elig) > 0:
             self.plastic_elig *= self.plastic_decay
+            self.plastic_elig_post *= self.plastic_decay_post
         if len(self.gated_elig) > 0:
             self.gated_elig *= self.gated_decay
         if self.has_reward:
@@ -527,8 +554,10 @@ class Brain:
             self.reward_elig[ri] *= 0.5
 
         # Synaptic homeostasis: soft normalization per target neuron
-        # Pulls total input toward initial value, prevents runaway but allows learning
-        # Rate 0.1 = 10% correction per reward delivery (~400 deliveries/session)
+        # OFF by default -- use sleep() compression instead
+        # When enabled: 10% correction per reward delivery (~400 deliveries/session)
+        if not self.reward_homeostasis:
+            return
         homeo_rate = 0.1
         for tid, indices in self.reward_target_groups.items():
             if len(indices) < 2:
@@ -558,6 +587,7 @@ class Brain:
             n['last_spike'] = int(self.last_spike[i])
         for pi, si in enumerate(self.plastic_idx):
             self.synapses[si]['eligibility'] = float(self.plastic_elig[pi])
+            self.synapses[si]['elig_post'] = float(self.plastic_elig_post[pi])
         for gi, si in enumerate(self.gated_idx):
             self.synapses[si]['eligibility'] = float(self.gated_elig[gi])
         for ri, si in enumerate(self.reward_idx):
@@ -572,6 +602,139 @@ class Brain:
             self.synapses[si]['current_gain'] = float(self.facil_gain[gi])
         for gi, si in enumerate(self.dep_idx):
             self.synapses[si]['current_gain'] = float(self.dep_gain[gi])
+
+    def sprout(self, max_new=50, window=2000, min_cofire=3, weight=0.5,
+               max_distance=8.0, seed=None):
+        """Synaptogenesis: grow new plastic synapses between co-active neurons.
+
+        Biology: axonal sprouting creates new connections between neurons that
+        fire together but lack direct connections. Axons only reach nearby
+        neurons (spatial constraint), so co-firing + proximity = new synapse.
+
+        Uses recent spike history + neuron spatial positions (pos_x, pos_y, pos_z)
+        to find co-active, spatially close pairs without existing connections.
+
+        Args:
+            max_new: max new synapses to create per call
+            window: how many recent ticks of spike data to analyze
+            min_cofire: minimum co-firing count to consider a pair
+            weight: initial weight for new synapses (small but non-zero)
+            max_distance: maximum spatial distance for sprouting (axon reach)
+            seed: RNG seed for tie-breaking when more candidates than max_new
+
+        Returns:
+            dict with sprouting stats
+        """
+        from engine.paths import plastic as plastic_module
+
+        spikes = self.recorder.spikes
+        if len(spikes) < min_cofire * 2:
+            return {'sprouted': 0, 'candidates': 0}
+
+        # Get recent spikes within window
+        cutoff = self.tick_count - window
+        recent = [(t, n) for t, n in spikes if t >= cutoff]
+        if not recent:
+            return {'sprouted': 0, 'candidates': 0}
+
+        # Build spatial position arrays for distance checks
+        pos_x = np.array([n.get('pos_x', 0.0) for n in self.neurons], dtype=np.float64)
+        pos_y = np.array([n.get('pos_y', 0.0) for n in self.neurons], dtype=np.float64)
+        pos_z = np.array([n.get('pos_z', 0.0) for n in self.neurons], dtype=np.float64)
+
+        # Build per-tick fired sets (bin into 5-tick windows for co-firing)
+        bin_size = 5
+        bins = {}
+        for t, n in recent:
+            b = t // bin_size
+            if b not in bins:
+                bins[b] = set()
+            bins[b].add(n)
+
+        # Count co-firings for neuron pairs (sample bins to keep tractable)
+        rng = np.random.RandomState(seed or 0)
+        bin_keys = list(bins.keys())
+        if len(bin_keys) > 200:
+            bin_keys = rng.choice(bin_keys, 200, replace=False).tolist()
+
+        cofire = {}
+        for b in bin_keys:
+            neurons = list(bins[b])
+            if len(neurons) < 2 or len(neurons) > 50:
+                continue  # skip empty or huge bins (noise)
+            for i in range(len(neurons)):
+                for j in range(i + 1, len(neurons)):
+                    pair = (min(neurons[i], neurons[j]), max(neurons[i], neurons[j]))
+                    cofire[pair] = cofire.get(pair, 0) + 1
+
+        # Filter by minimum co-firing AND spatial proximity
+        max_d2 = max_distance * max_distance
+        candidates = []
+        for pair, count in cofire.items():
+            if count < min_cofire:
+                continue
+            n1, n2 = pair
+            dx = pos_x[n1] - pos_x[n2]
+            dy = pos_y[n1] - pos_y[n2]
+            dz = pos_z[n1] - pos_z[n2]
+            d2 = dx*dx + dy*dy + dz*dz
+            if d2 <= max_d2:
+                candidates.append((count, d2, pair))
+
+        # Sort by co-firing count (primary), then proximity (secondary)
+        candidates.sort(key=lambda x: (-x[0], x[1]))
+
+        if not candidates:
+            return {'sprouted': 0, 'candidates': 0}
+
+        # Build existing connection set
+        existing = set()
+        for syn in self.synapses:
+            existing.add((syn['source'], syn['target']))
+            existing.add((syn['target'], syn['source']))
+        for gj in self.gap_junctions:
+            existing.add((gj['source'], gj['target']))
+            existing.add((gj['target'], gj['source']))
+
+        # Create new synapses for unconnected co-active nearby pairs
+        new_syns = []
+        neuron_db_ids = [n['id'] for n in self.neurons]
+        max_syn_id = max((s['id'] for s in self.synapses), default=0)
+
+        for count, d2, (n1, n2) in candidates:
+            if len(new_syns) >= max_new:
+                break
+            if (n1, n2) not in existing:
+                max_syn_id += 1
+                syn = {
+                    'id': max_syn_id,
+                    'source': n1,
+                    'target': n2,
+                    'source_db_id': neuron_db_ids[n1],
+                    'target_db_id': neuron_db_ids[n2],
+                    'type': 'plastic',
+                    'module': plastic_module,
+                    'weight': weight,
+                    'delay': 1,
+                }
+                syn.update(dict(plastic_module.DEFAULTS))
+                syn.update(dict(plastic_module.INITIAL_STATE))
+                new_syns.append(syn)
+                existing.add((n1, n2))
+
+        if not new_syns:
+            return {'sprouted': 0, 'candidates': len(candidates)}
+
+        # Add to synapse list and rebuild structures
+        self.synapses.extend(new_syns)
+        self.data['synapses'] = self.synapses
+        self._build_synapse_structures()
+
+        return {
+            'sprouted': len(new_syns),
+            'candidates': len(candidates),
+            'top_cofire': candidates[0][0] if candidates else 0,
+        }
 
     def sleep(self, ticks, compression=0.8, noise_amplitude=2.0, seed=None):
         """Sleep phase: noise replay + synaptic homeostasis.
@@ -631,12 +794,44 @@ class Brain:
                 pre_avg = pre_total / nr
                 post_avg = post_total / nr
 
+        # Phase 3: Power-law compression on plastic (STDP) weights
+        n_plastic_compressed = 0
+        pre_plastic_avg = 0.0
+        post_plastic_avg = 0.0
+        np_plastic = len(self.plastic_idx)
+        if np_plastic > 0 and compression < 1.0:
+            p_init = 2.0  # Plastic synapses start at 2.0 (recipe default)
+            pre_p_total = 0.0
+            post_p_total = 0.0
+            for pi, si in enumerate(self.plastic_idx):
+                syn = self.synapses[si]
+                w = syn['weight']
+                pre_p_total += w
+                if w <= 0 or abs(w - p_init) < 1e-6:
+                    post_p_total += w
+                    continue
+                w_new = p_init * (w / p_init) ** compression
+                syn['weight'] = max(syn['w_min'], min(syn['w_max'], w_new))
+                post_p_total += syn['weight']
+                n_plastic_compressed += 1
+            if np_plastic > 0:
+                pre_plastic_avg = pre_p_total / np_plastic
+                post_plastic_avg = post_p_total / np_plastic
+
+        # Phase 4: Synaptogenesis (grow new connections from co-firing)
+        sprout_result = self.sprout(max_new=50, window=max(ticks, 2000), seed=seed)
+
         result = {
             'replay_ticks': ticks,
             'replay_spikes': replay_spikes,
             'compressed': n_compressed,
             'pre_avg_w': pre_avg,
             'post_avg_w': post_avg,
+            'plastic_compressed': n_plastic_compressed,
+            'pre_plastic_avg': pre_plastic_avg,
+            'post_plastic_avg': post_plastic_avg,
+            'sprouted': sprout_result.get('sprouted', 0),
+            'sprout_candidates': sprout_result.get('candidates', 0),
         }
         return result
 
